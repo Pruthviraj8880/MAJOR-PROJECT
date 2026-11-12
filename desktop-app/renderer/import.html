@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk CSV Import — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <nav class="navbar">
+    <span class="brand">Innovation Portal</span>
+    <div id="nav-links"></div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1 style="margin-bottom:24px;">CSV Bulk Import</h1>
+
+    <!-- Upload Card -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2>Import Achievements via CSV</h2>
+          <p style="font-size:13px; color:#666; margin-bottom:16px;">
+            Upload a .csv file containing columns: <code>title</code>, <code>indicator</code> (or <code>indicatorId</code>), and <code>description</code>.
+          </p>
+        </div>
+        <button class="btn btn-outline" style="font-size:13px;" onclick="downloadTemplate()">Download Sample CSV</button>
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <input type="file" id="csv-file-input" accept=".csv" onchange="handleFileSelect(event)">
+      </div>
+    </div>
+
+    <!-- Preview Card -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2>Preview Data <span id="parsed-count" style="font-size:13px; font-weight:normal; color:#666; margin-left:8px;"></span></h2>
+        <button id="btn-execute-import" class="btn btn-primary" onclick="executeImport()" disabled>Import All Entries</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:8%;">#</th>
+            <th style="width:45%;">Title & Details</th>
+            <th style="width:30%;">Indicator Matched</th>
+            <th style="width:17%;">Validation</th>
+          </tr>
+        </thead>
+        <tbody id="preview-body">
+          <tr><td colspan="4" style="color:#999;">Select a CSV file above to preview records.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../node_modules/papaparse/papaparse.min.js"></script>
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/import.js"></script>
+  <script>
+    initImportPage();
+  </script>
+
+</body>
+</html>
+

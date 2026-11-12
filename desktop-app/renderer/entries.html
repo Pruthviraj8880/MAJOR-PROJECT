@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Achievement Entries — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <nav class="navbar">
+    <span class="brand">Innovation Portal</span>
+    <div id="nav-links"></div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1 style="margin-bottom:24px;">Innovation Entries</h1>
+
+    <!-- Submit Achievement Form Card -->
+    <div class="card">
+      <h2>Submit New Achievement</h2>
+      <p style="font-size:13px; color:#666; margin-bottom:16px;">
+        Submit your papers, patents, grants, startups, or competition awards.
+      </p>
+
+      <form id="entry-form" onsubmit="handleEntrySubmit(event)">
+        <div style="display:flex; gap:16px;">
+          <div class="form-group" style="flex:1;">
+            <label for="entry-indicator">Indicator Type *</label>
+            <select id="entry-indicator" required>
+              <option value="">Loading indicators…</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:2;">
+            <label for="entry-title">Title / Project Name *</label>
+            <input type="text" id="entry-title" placeholder="e.g. IoT Smart Meter Patent" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="entry-desc">Description & Evidence Details</label>
+          <textarea id="entry-desc" placeholder="Provide publication details, DOI, grant amount, or startup incorporation info"></textarea>
+        </div>
+
+        <button type="submit" id="entry-save-btn" class="btn btn-primary">Submit Achievement</button>
+      </form>
+    </div>
+
+    <!-- Entries Table Card -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+        <h2>All Submitted Entries</h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="text" id="search-keyword" placeholder="Search title or details…" oninput="renderEntriesTable(allEntries)" style="padding:5px 10px; font-size:13px; border:1px solid var(--border); border-radius:var(--radius); width:180px;">
+          <label for="filter-status" style="font-size:13px; font-weight:600;">Status:</label>
+          <select id="filter-status" onchange="renderEntriesTable(allEntries)" style="padding:4px 8px; font-size:13px; border:1px solid var(--border); border-radius:var(--radius);">
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <button class="btn btn-outline" style="font-size:13px; padding:5px 10px;" onclick="exportEntriesToCsv()">Export CSV</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:35%;">Title</th>
+            <th style="width:20%;">Indicator</th>
+            <th style="width:18%;">Submitted By</th>
+            <th style="width:12%;">Status</th>
+            <th style="width:15%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="entries-body">
+          <tr><td colspan="5" style="color:#999;">Loading entries…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/entries.js"></script>
+  <script>
+    initEntriesPage();
+  </script>
+
+</body>
+</html>
+
