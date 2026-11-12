@@ -53,9 +53,10 @@
 
     <!-- Entries Table Card -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
         <h2>All Submitted Entries</h2>
         <div style="display:flex; align-items:center; gap:8px;">
+          <input type="text" id="search-keyword" placeholder="Search title or details…" oninput="renderEntriesTable(allEntries)" style="padding:5px 10px; font-size:13px; border:1px solid var(--border); border-radius:var(--radius); width:180px;">
           <label for="filter-status" style="font-size:13px; font-weight:600;">Status:</label>
           <select id="filter-status" onchange="renderEntriesTable(allEntries)" style="padding:4px 8px; font-size:13px; border:1px solid var(--border); border-radius:var(--radius);">
             <option value="all">All</option>
@@ -63,6 +64,7 @@
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
           </select>
+          <button class="btn btn-outline" style="font-size:13px; padding:5px 10px;" onclick="exportEntriesToCsv()">Export CSV</button>
         </div>
       </div>
 
@@ -94,3 +96,4 @@
 
 </body>
 </html>
+
