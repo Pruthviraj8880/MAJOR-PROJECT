@@ -156,38 +156,67 @@ const getEntryById = async (req, res) => {
 };
 
 
-// GET ALL ENTRIES
+// GET ALL ENTRIES WITH PAGINATION
 const getAllEntries = async (req, res) => {
   try {
-    const entries = await prisma.entry.findMany({
-      include: {
-        indicator: {
-          select: {
-            id: true,
-            name: true,
-            category: true,
-            unit: true
+    const page = req.query.page === undefined ? 1 : Number(req.query.page);
+    const limit = req.query.limit === undefined ? 10 : Number(req.query.limit);
+
+    if (
+      !Number.isInteger(page) ||
+      !Number.isInteger(limit) ||
+      page < 1 ||
+      limit < 1 ||
+      limit > 100
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Page must be positive and limit must be between 1 and 100"
+      });
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [entries, totalEntries] = await prisma.$transaction([
+      prisma.entry.findMany({
+        skip,
+        take: limit,
+        include: {
+          indicator: {
+            select: {
+              id: true,
+              name: true,
+              category: true,
+              unit: true
+            }
+          },
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true
+            }
+          },
+          versions: {
+            orderBy: { version: "desc" }
           }
         },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
-        },
-        versions: {
-          orderBy: { version: "desc" }
+        orderBy: {
+          createdAt: "desc"
         }
-      },
-      orderBy: {
-        createdAt: "desc"
-      }
-    });
+      }),
+      prisma.entry.count()
+    ]);
 
     return res.status(200).json({
       success: true,
+      pagination: {
+        currentPage: page,
+        limit,
+        totalEntries,
+        totalPages: Math.ceil(totalEntries / limit)
+      },
       count: entries.length,
       entries
     });
