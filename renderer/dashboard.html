@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <nav class="navbar">
+    <span class="brand">Innovation Portal</span>
+    <div id="nav-links"></div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1 style="margin-bottom:24px;">Dashboard</h1>
+
+    <!-- Quick stats — numbers filled in by JS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="number" id="stat-entries">–</div>
+        <div class="label">Total Entries</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="stat-pending">–</div>
+        <div class="label">Pending Approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="stat-approved">–</div>
+        <div class="label">Approved</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="stat-indicators">–</div>
+        <div class="label">Indicator Types</div>
+      </div>
+    </div>
+
+    <!-- Recent entries table -->
+    <div class="card">
+      <h2>Recent Entries</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Indicator</th>
+            <th>Submitted By</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="recent-entries">
+          <tr><td colspan="4" style="color:#999;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    // Guard: redirect to login if not authenticated
+    var user = requireAuth();
+    if (user) {
+      setText('user-info', user.name + ' (' + user.role + ')');
+      buildNav(user.role);
+      loadDashboard();
+    }
+
+    function loadDashboard() {
+      // Fetch entries and indicators in parallel, then fill the stats
+      Promise.all([getEntries(), getIndicators()])
+        .then(function (results) {
+          var entries = results[0];
+          var indicators = results[1];
+
+          var pending  = entries.filter(function (e) { return e.status === 'pending'; }).length;
+          var approved = entries.filter(function (e) { return e.status === 'approved'; }).length;
+
+          setText('stat-entries', entries.length);
+          setText('stat-pending', pending);
+          setText('stat-approved', approved);
+          setText('stat-indicators', indicators.length);
+
+          renderRecentEntries(entries.slice(0, 5));
+        })
+        .catch(function (err) {
+          showToast(err.message, 'error');
+        });
+    }
+
+    function renderRecentEntries(entries) {
+      var tbody = document.getElementById('recent-entries');
+
+      if (entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#999;">No entries yet</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = entries.map(function (e) {
+        var badgeClass = 'badge-' + e.status;
+        return '<tr>' +
+          '<td>' + e.title + '</td>' +
+          '<td>' + (e.indicatorName || '—') + '</td>' +
+          '<td>' + (e.submittedByName || '—') + '</td>' +
+          '<td><span class="badge ' + badgeClass + '">' + e.status + '</span></td>' +
+          '</tr>';
+      }).join('');
+    }
+  </script>
+
+</body>
+</html>
+

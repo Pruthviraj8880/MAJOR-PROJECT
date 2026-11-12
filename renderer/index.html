@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <script src="../config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // index.html is just a router:
+    // If logged in  → go to dashboard
+    // If not        → go to login
+    var token = localStorage.getItem('token');
+    window.location.href = token ? 'dashboard.html' : 'login.html';
+  </script>
+
+</body>
+</html>
+
