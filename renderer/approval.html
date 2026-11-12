@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Approvals — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <nav class="navbar">
+    <span class="brand">Innovation Portal</span>
+    <div id="nav-links"></div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1 style="margin-bottom:24px;">Approval Workflow</h1>
+
+    <!-- Inline Review / Decision Card (hidden by default) -->
+    <div id="review-card" class="card" style="display:none; border:2px solid var(--primary);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2 id="modal-entry-title" style="margin-bottom:4px;">Entry Title</h2>
+          <p id="modal-entry-sub" style="font-size:13px; color:#666; margin-bottom:12px;"></p>
+        </div>
+        <button class="btn btn-outline" style="padding:2px 8px; font-size:12px;" onclick="closeReviewModal()">✕ Close</button>
+      </div>
+
+      <div style="background:#fafafa; border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-bottom:16px;">
+        <strong>Details / Evidence:</strong>
+        <p id="modal-entry-desc" style="font-size:13px; color:#444; margin-top:4px; white-space:pre-wrap;"></p>
+      </div>
+
+      <div class="form-group">
+        <label for="review-comment">Reviewer Comment / Reason (Required on Rejection)</label>
+        <textarea id="review-comment" placeholder="Add feedback or reasons for approval/rejection"></textarea>
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <button id="btn-approve" class="btn" style="background:var(--success); color:#fff;" onclick="submitDecision('approved')">✓ Approve Entry</button>
+        <button id="btn-reject" class="btn btn-danger" onclick="submitDecision('rejected')">✕ Reject Entry</button>
+        <button type="button" class="btn btn-outline" onclick="closeReviewModal()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Submissions List Card -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2>Submissions for Review <span id="pending-count-badge" style="font-size:13px; font-weight:normal; color:#666; margin-left:8px;"></span></h2>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label for="approval-filter" style="font-size:13px; font-weight:600;">Show:</label>
+          <select id="approval-filter" onchange="renderApprovalTable()" style="padding:4px 8px; font-size:13px; border:1px solid var(--border); border-radius:var(--radius);">
+            <option value="pending" selected>Pending Only</option>
+            <option value="all">All Submissions</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:35%;">Title</th>
+            <th style="width:20%;">Indicator</th>
+            <th style="width:20%;">Submitted By</th>
+            <th style="width:12%;">Status</th>
+            <th style="width:13%;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="approval-body">
+          <tr><td colspan="5" style="color:#999;">Loading submissions…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/approval.js"></script>
+  <script>
+    initApprovalPage();
+  </script>
+
+</body>
+</html>
