@@ -10,6 +10,7 @@ const userRoutes = require("./routes/userRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
 const indicatorRoutes = require("./routes/indicatorRoutes");
 const entryRoutes = require("./routes/entryRoutes");
+const feedbackRoutes = require("./routes/feedbackRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -34,6 +35,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/indicators", indicatorRoutes);
 app.use("/api/entries", entryRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 const PORT = process.env.PORT || 3000;
 
