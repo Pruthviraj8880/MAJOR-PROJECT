@@ -149,3 +149,4 @@ function downloadTemplate() {
   link.click();
   link.remove();
 }
+

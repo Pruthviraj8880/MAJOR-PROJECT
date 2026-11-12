@@ -129,3 +129,4 @@ function handleDeleteIndicator(id) {
       showToast(err.message, 'error');
     });
 }
+

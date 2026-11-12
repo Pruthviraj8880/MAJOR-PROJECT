@@ -98,3 +98,4 @@ function handleAddComment(event) {
       submitBtn.textContent = 'Post Comment';
     });
 }
+
