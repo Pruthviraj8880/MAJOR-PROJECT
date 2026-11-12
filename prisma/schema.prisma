@@ -1,0 +1,165 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User roles
+enum Role {
+  ADMIN
+  FACULTY
+  STUDENT
+}
+
+// Entry workflow status
+enum EntryStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// 1. USERS
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STUDENT)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  createdEntries  Entry[]
+  createdVersions EntryVersion[]
+  feedbacks       Feedback[]
+  auditLogs       AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+  @@index([role])
+}
+
+// 2. DEPARTMENTS
+model Department {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String?
+
+  users      User[]
+  indicators Indicator[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 3. INDICATORS
+model Indicator {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  category    String?
+  unit        String?
+  isActive    Boolean @default(true)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  entries Entry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([departmentId])
+}
+
+// 4. ENTRIES
+model Entry {
+  id String @id @default(cuid())
+
+  title       String
+  description String?
+
+  status EntryStatus @default(DRAFT)
+
+  indicatorId String
+  indicator   Indicator @relation(fields: [indicatorId], references: [id], onDelete: Restrict)
+
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  versions  EntryVersion[]
+  feedbacks Feedback[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([indicatorId])
+  @@index([createdById])
+  @@index([status])
+}
+
+// 5. ENTRY VERSIONING
+model EntryVersion {
+  id String @id @default(cuid())
+
+  entryId String
+  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  version Int
+
+  // Stores the complete snapshot of the entry
+  data Json
+
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  // Each entry must have a unique version number
+  @@unique([entryId, version])
+  @@index([createdById])
+}
+
+// 6. FEEDBACK
+model Feedback {
+  id      String @id @default(cuid())
+  comment String
+
+  entryId String
+  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([entryId])
+  @@index([createdById])
+}
+
+// 7. AUDIT LOG
+model AuditLog {
+  id String @id @default(cuid())
+
+  action   String
+  entity   String
+  entityId String?
+
+  metadata Json?
+
+  userId String?
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  timestamp DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([timestamp])
+}
