@@ -19,7 +19,13 @@
   </nav>
 
   <div class="page">
-    <h1 style="margin-bottom:24px;">Dashboard</h1>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <div>
+        <h1 style="margin-bottom:4px;">Dashboard</h1>
+        <p style="font-size:13px; color:#666;" id="role-welcome">Welcome to the Innovation Excellence Indicators Portal</p>
+      </div>
+      <div id="quick-actions" style="display:flex; gap:10px;"></div>
+    </div>
 
     <!-- Quick stats — numbers filled in by JS -->
     <div class="stats-grid">
@@ -41,9 +47,20 @@
       </div>
     </div>
 
+    <!-- Indicator Breakdown Summary -->
+    <div class="card">
+      <h2>Activity by Indicator Category</h2>
+      <div id="category-summary" style="display:flex; flex-wrap:wrap; gap:12px; margin-top:8px;">
+        <span style="color:#999; font-size:13px;">Loading breakdown…</span>
+      </div>
+    </div>
+
     <!-- Recent entries table -->
     <div class="card">
-      <h2>Recent Entries</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2>Recent Entries</h2>
+        <a href="entries.html" style="font-size:13px; color:var(--primary); text-decoration:none;">View All Entries →</a>
+      </div>
       <table>
         <thead>
           <tr>
@@ -65,16 +82,27 @@
   <script src="js/auth.js"></script>
   <script src="js/ui.js"></script>
   <script>
-    // Guard: redirect to login if not authenticated
     var user = requireAuth();
     if (user) {
       setText('user-info', user.name + ' (' + user.role + ')');
+      setText('role-welcome', 'Logged in as ' + user.name + ' • ' + user.role.toUpperCase() + ' Portal');
       buildNav(user.role);
+      renderQuickActions(user.role);
       loadDashboard();
     }
 
+    function renderQuickActions(role) {
+      var container = document.getElementById('quick-actions');
+      if (role === 'admin') {
+        container.innerHTML = '<a href="approval.html" class="btn btn-primary" style="text-decoration:none; font-size:13px;">Review Pending</a>' +
+                              '<a href="indicators.html" class="btn btn-outline" style="text-decoration:none; font-size:13px;">+ New Indicator</a>';
+      } else {
+        container.innerHTML = '<a href="entries.html" class="btn btn-primary" style="text-decoration:none; font-size:13px;">+ Submit Achievement</a>' +
+                              '<a href="import.html" class="btn btn-outline" style="text-decoration:none; font-size:13px;">Bulk Import</a>';
+      }
+    }
+
     function loadDashboard() {
-      // Fetch entries and indicators in parallel, then fill the stats
       Promise.all([getEntries(), getIndicators()])
         .then(function (results) {
           var entries = results[0];
@@ -88,6 +116,7 @@
           setText('stat-approved', approved);
           setText('stat-indicators', indicators.length);
 
+          renderCategorySummary(entries, indicators);
           renderRecentEntries(entries.slice(0, 5));
         })
         .catch(function (err) {
@@ -95,9 +124,24 @@
         });
     }
 
+    function renderCategorySummary(entries, indicators) {
+      var counts = {};
+      indicators.forEach(function (ind) { counts[ind.name] = 0; });
+      entries.forEach(function (e) {
+        var name = e.indicatorName || 'Other';
+        counts[name] = (counts[name] || 0) + 1;
+      });
+
+      var summaryDiv = document.getElementById('category-summary');
+      summaryDiv.innerHTML = Object.keys(counts).map(function (name) {
+        return '<div style="background:#f0f4ff; border:1px solid #dbeafe; padding:8px 14px; border-radius:6px; font-size:13px;">' +
+               '<strong>' + name + ':</strong> <span style="color:var(--primary); font-weight:bold;">' + counts[name] + '</span>' +
+               '</div>';
+      }).join('');
+    }
+
     function renderRecentEntries(entries) {
       var tbody = document.getElementById('recent-entries');
-
       if (entries.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="color:#999;">No entries yet</td></tr>';
         return;
