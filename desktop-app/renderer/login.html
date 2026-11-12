@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="login-wrapper">
+    <div class="login-box">
+      <h1>Innovation Portal</h1>
+      <p>Sign in to manage innovation indicators</p>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@institute.edu" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Your password" required>
+        </div>
+
+        <div id="login-error" class="error-text"></div>
+
+        <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%; margin-top:16px;">
+          Log In
+        </button>
+      </form>
+
+      <!-- Credentials reminder for development -->
+      <div style="margin-top:24px; font-size:12px; color:#999; border-top:1px solid #eee; padding-top:16px;">
+        <strong>Test accounts:</strong><br>
+        admin@inst.edu / admin123<br>
+        faculty@inst.edu / faculty123<br>
+        student@inst.edu / student123
+      </div>
+    </div>
+  </div>
+
+  <!-- Config must load first (gives us CONFIG.API_BASE) -->
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+
+</body>
+</html>
+
