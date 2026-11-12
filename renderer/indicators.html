@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Indicators — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <nav class="navbar">
+    <span class="brand">Innovation Portal</span>
+    <div id="nav-links"></div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1 style="margin-bottom:24px;">Indicator Management</h1>
+
+    <!-- Create / Edit Form Card -->
+    <div class="card">
+      <h2 id="form-title">Add New Indicator</h2>
+      <form id="indicator-form" onsubmit="handleIndicatorSubmit(event)">
+        <div style="display:flex; gap:16px;">
+          <div class="form-group" style="flex:2;">
+            <label for="ind-name">Indicator Name *</label>
+            <input type="text" id="ind-name" placeholder="e.g. Research Papers, Patents" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label for="ind-category">Category</label>
+            <input type="text" id="ind-category" placeholder="e.g. Research, IP, Grants">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ind-desc">Description</label>
+          <textarea id="ind-desc" placeholder="Brief summary of what qualifies for this indicator"></textarea>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <button type="submit" id="ind-save-btn" class="btn btn-primary">Create Indicator</button>
+          <button type="button" id="ind-cancel-btn" class="btn btn-outline" style="display:none;" onclick="resetIndicatorForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Indicator List Table -->
+    <div class="card">
+      <h2>Existing Indicators</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:25%;">Indicator Name</th>
+            <th style="width:20%;">Category</th>
+            <th style="width:40%;">Description</th>
+            <th style="width:15%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="indicators-body">
+          <tr><td colspan="4" style="color:#999;">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/indicators.js"></script>
+  <script>
+    initIndicatorsPage();
+  </script>
+
+</body>
+</html>
