@@ -111,6 +111,12 @@ app.get('/api/entries', authMiddleware, (req, res) => {
   res.json(entries);
 });
 
+app.get('/api/entries/:id', authMiddleware, (req, res) => {
+  const entry = entries.find(e => e.id === Number(req.params.id));
+  if (!entry) return res.status(404).json({ message: 'Entry not found' });
+  res.json(entry);
+});
+
 app.post('/api/entries', authMiddleware, (req, res) => {
   const ind = indicators.find(i => i.id === Number(req.body.indicatorId));
   const entry = {

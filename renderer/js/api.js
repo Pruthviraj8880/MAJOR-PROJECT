@@ -85,6 +85,10 @@ function getEntries() {
   return apiRequest('/api/entries');
 }
 
+function getEntry(id) {
+  return apiRequest('/api/entries/' + id);
+}
+
 function createEntry(entry) {
   return apiRequest('/api/entries', {
     method: 'POST',
