@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entry Details & Comments — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top navigation bar -->
+  <nav class="navbar">
+    <span class="brand">Innovation Portal</span>
+    <div id="nav-links"></div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div style="margin-bottom:16px;">
+      <a href="entries.html" style="font-size:13px; color:var(--primary); text-decoration:none;">← Back to Entries</a>
+    </div>
+
+    <!-- Entry Overview Card -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+        <h1 id="detail-title" style="font-size:20px;">Loading…</h1>
+        <span id="detail-status" class="badge">…</span>
+      </div>
+
+      <div style="font-size:13px; color:#666; margin-bottom:16px;">
+        <span id="detail-indicator" style="font-weight:600; color:var(--primary);"></span> • Submitted by <span id="detail-author"></span>
+      </div>
+
+      <div style="background:#fafafa; border:1px solid var(--border); border-radius:var(--radius); padding:16px;">
+        <strong style="font-size:13px;">Description & Evidence:</strong>
+        <p id="detail-description" style="font-size:14px; color:#333; margin-top:6px; white-space:pre-wrap;"></p>
+      </div>
+    </div>
+
+    <!-- Comments and Feedback Thread Card -->
+    <div class="card">
+      <h2>Discussion & Review Comments</h2>
+      <div id="comments-list" style="margin-bottom:20px;"></div>
+
+      <!-- Add Comment Form -->
+      <form onsubmit="handleAddComment(event)">
+        <div class="form-group">
+          <label for="new-comment-text">Add Comment or Feedback</label>
+          <textarea id="new-comment-text" placeholder="Write feedback, ask a question, or clarify evidence…" required></textarea>
+        </div>
+        <button type="submit" id="btn-post-comment" class="btn btn-primary">Post Comment</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/comments.js"></script>
+  <script>
+    initEntryDetailPage();
+  </script>
+
+</body>
+</html>
