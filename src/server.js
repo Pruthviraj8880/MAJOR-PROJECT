@@ -9,6 +9,7 @@ const testRoutes = require("./routes/testRoutes");
 const userRoutes = require("./routes/userRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
 const indicatorRoutes = require("./routes/indicatorRoutes");
+const entryRoutes = require("./routes/entryRoutes");
 
 app.use(cors());
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use("/api/test", testRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/indicators", indicatorRoutes);
+app.use("/api/entries", entryRoutes);
 
 const PORT = process.env.PORT || 3000;
 
