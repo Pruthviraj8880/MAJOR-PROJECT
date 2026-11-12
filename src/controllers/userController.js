@@ -1,5 +1,7 @@
+
 const bcrypt = require("bcryptjs");
 const prisma = require("../utils/prisma");
+const createAuditLog = require("../utils/auditLogger");
 
 // GET ALL USERS
 const getUsers = async (req, res) => {
@@ -131,6 +133,19 @@ const createUser = async (req, res) => {
       }
     });
 
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "CREATE",
+      entity: "USER",
+      entityId: user.id,
+      userId: req.user.id,
+      metadata: {
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -212,6 +227,20 @@ const updateUser = async (req, res) => {
       }
     });
 
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "UPDATE",
+      entity: "USER",
+      entityId: user.id,
+      userId: req.user.id,
+      metadata: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        departmentId: user.departmentId
+      }
+    });
+
     res.status(200).json({
       success: true,
       message: "User updated successfully",
@@ -245,6 +274,19 @@ const deleteUser = async (req, res) => {
 
     await prisma.user.delete({
       where: { id }
+    });
+
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "DELETE",
+      entity: "USER",
+      entityId: id,
+      userId: req.user.id,
+      metadata: {
+        name: existingUser.name,
+        email: existingUser.email,
+        role: existingUser.role
+      }
     });
 
     res.status(200).json({

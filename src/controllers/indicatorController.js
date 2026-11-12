@@ -1,5 +1,6 @@
 
 const prisma = require("../utils/prisma");
+const createAuditLog = require("../utils/auditLogger");
 
 // GET all indicators
 const getIndicators = async (req, res) => {
@@ -102,6 +103,20 @@ const createIndicator = async (req, res) => {
       }
     });
 
+    await createAuditLog({
+      action: "CREATE",
+      entity: "INDICATOR",
+      entityId: indicator.id,
+      userId: req.user.id,
+      metadata: {
+        name: indicator.name,
+        description: indicator.description,
+        category: indicator.category,
+        unit: indicator.unit,
+        departmentId: indicator.departmentId
+      }
+    });
+
     res.status(201).json({
       success: true,
       message: "Indicator created successfully",
@@ -187,6 +202,21 @@ const updateIndicator = async (req, res) => {
       data
     });
 
+    await createAuditLog({
+      action: "UPDATE",
+      entity: "INDICATOR",
+      entityId: indicator.id,
+      userId: req.user.id,
+      metadata: {
+        name: indicator.name,
+        description: indicator.description,
+        category: indicator.category,
+        unit: indicator.unit,
+        isActive: indicator.isActive,
+        departmentId: indicator.departmentId
+      }
+    });
+
     res.status(200).json({
       success: true,
       message: "Indicator updated successfully",
@@ -221,8 +251,33 @@ const deleteIndicator = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const existingIndicator = await prisma.indicator.findUnique({
+      where: { id }
+    });
+
+    if (!existingIndicator) {
+      return res.status(404).json({
+        success: false,
+        message: "Indicator not found"
+      });
+    }
+
     await prisma.indicator.delete({
       where: { id }
+    });
+
+    await createAuditLog({
+      action: "DELETE",
+      entity: "INDICATOR",
+      entityId: id,
+      userId: req.user.id,
+      metadata: {
+        name: existingIndicator.name,
+        description: existingIndicator.description,
+        category: existingIndicator.category,
+        unit: existingIndicator.unit,
+        departmentId: existingIndicator.departmentId
+      }
     });
 
     res.status(200).json({

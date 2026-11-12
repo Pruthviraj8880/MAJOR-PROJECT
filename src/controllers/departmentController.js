@@ -1,5 +1,6 @@
 
 const prisma = require("../utils/prisma");
+const createAuditLog = require("../utils/auditLogger");
 
 // GET all departments
 const getDepartments = async (req, res) => {
@@ -86,6 +87,17 @@ const createDepartment = async (req, res) => {
       }
     });
 
+    await createAuditLog({
+      action: "CREATE",
+      entity: "DEPARTMENT",
+      entityId: department.id,
+      userId: req.user.id,
+      metadata: {
+        name: department.name,
+        description: department.description
+      }
+    });
+
     res.status(201).json({
       success: true,
       message: "Department created successfully",
@@ -141,6 +153,17 @@ const updateDepartment = async (req, res) => {
       data
     });
 
+    await createAuditLog({
+      action: "UPDATE",
+      entity: "DEPARTMENT",
+      entityId: department.id,
+      userId: req.user.id,
+      metadata: {
+        name: department.name,
+        description: department.description
+      }
+    });
+
     res.status(200).json({
       success: true,
       message: "Department updated successfully",
@@ -173,8 +196,30 @@ const deleteDepartment = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const existingDepartment = await prisma.department.findUnique({
+      where: { id }
+    });
+
+    if (!existingDepartment) {
+      return res.status(404).json({
+        success: false,
+        message: "Department not found"
+      });
+    }
+
     await prisma.department.delete({
       where: { id }
+    });
+
+    await createAuditLog({
+      action: "DELETE",
+      entity: "DEPARTMENT",
+      entityId: id,
+      userId: req.user.id,
+      metadata: {
+        name: existingDepartment.name,
+        description: existingDepartment.description
+      }
     });
 
     res.status(200).json({
@@ -186,6 +231,13 @@ const deleteDepartment = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Department not found"
+      });
+    }
+
+    if (error.code === "P2003") {
+      return res.status(409).json({
+        success: false,
+        message: "Cannot delete department because it has related records"
       });
     }
 

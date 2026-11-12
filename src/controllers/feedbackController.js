@@ -1,24 +1,19 @@
 
 const prisma = require("../utils/prisma");
+const createAuditLog = require("../utils/auditLogger");
 
 // CREATE FEEDBACK
 const createFeedback = async (req, res) => {
   try {
     const { comment, entryId } = req.body;
 
-    // Validate comment
-    if (
-      !comment ||
-      typeof comment !== "string" ||
-      !comment.trim()
-    ) {
+    if (!comment || typeof comment !== "string" || !comment.trim()) {
       return res.status(400).json({
         success: false,
         message: "Feedback comment is required"
       });
     }
 
-    // Validate entry ID
     if (!entryId) {
       return res.status(400).json({
         success: false,
@@ -26,7 +21,6 @@ const createFeedback = async (req, res) => {
       });
     }
 
-    // Check whether entry exists
     const entry = await prisma.entry.findUnique({
       where: { id: entryId }
     });
@@ -38,7 +32,6 @@ const createFeedback = async (req, res) => {
       });
     }
 
-    // Create feedback
     const feedback = await prisma.feedback.create({
       data: {
         comment: comment.trim(),
@@ -54,6 +47,17 @@ const createFeedback = async (req, res) => {
             role: true
           }
         }
+      }
+    });
+
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "CREATE",
+      entity: "FEEDBACK",
+      entityId: feedback.id,
+      userId: req.user.id,
+      metadata: {
+        comment: feedback.comment
       }
     });
 
@@ -79,7 +83,6 @@ const getFeedbackByEntry = async (req, res) => {
   try {
     const { entryId } = req.params;
 
-    // Check whether entry exists
     const entry = await prisma.entry.findUnique({
       where: { id: entryId },
       select: { id: true }
@@ -92,7 +95,6 @@ const getFeedbackByEntry = async (req, res) => {
       });
     }
 
-    // Fetch feedback for this entry
     const feedbacks = await prisma.feedback.findMany({
       where: { entryId },
       include: {
@@ -126,6 +128,7 @@ const getFeedbackByEntry = async (req, res) => {
   }
 };
 
+
 // UPDATE FEEDBACK
 const updateFeedback = async (req, res) => {
   try {
@@ -150,7 +153,7 @@ const updateFeedback = async (req, res) => {
       });
     }
 
-    // Only the creator or Admin can update feedback
+    // Only creator or Admin can update
     if (
       existingFeedback.createdById !== req.user.id &&
       req.user.role !== "ADMIN"
@@ -165,6 +168,17 @@ const updateFeedback = async (req, res) => {
       where: { id },
       data: {
         comment: comment.trim()
+      }
+    });
+
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "UPDATE",
+      entity: "FEEDBACK",
+      entityId: updatedFeedback.id,
+      userId: req.user.id,
+      metadata: {
+        comment: updatedFeedback.comment
       }
     });
 
@@ -184,6 +198,7 @@ const updateFeedback = async (req, res) => {
   }
 };
 
+
 // DELETE FEEDBACK
 const deleteFeedback = async (req, res) => {
   try {
@@ -200,7 +215,7 @@ const deleteFeedback = async (req, res) => {
       });
     }
 
-    // Only creator or Admin can delete feedback
+    // Only creator or Admin can delete
     if (
       existingFeedback.createdById !== req.user.id &&
       req.user.role !== "ADMIN"
@@ -213,6 +228,17 @@ const deleteFeedback = async (req, res) => {
 
     await prisma.feedback.delete({
       where: { id }
+    });
+
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "DELETE",
+      entity: "FEEDBACK",
+      entityId: id,
+      userId: req.user.id,
+      metadata: {
+        comment: existingFeedback.comment
+      }
     });
 
     return res.status(200).json({
@@ -229,6 +255,7 @@ const deleteFeedback = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   createFeedback,

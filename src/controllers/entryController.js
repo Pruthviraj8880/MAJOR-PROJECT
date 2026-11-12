@@ -1,5 +1,6 @@
 
 const prisma = require("../utils/prisma");
+const createAuditLog = require("../utils/auditLogger");
 
 // CREATE ENTRY + VERSION 1
 const createEntry = async (req, res) => {
@@ -57,6 +58,21 @@ const createEntry = async (req, res) => {
       });
 
       return { entry, version };
+    });
+
+    // CREATE AUDIT LOG
+    await createAuditLog({
+      action: "CREATE",
+      entity: "ENTRY",
+      entityId: result.entry.id,
+      userId: req.user.id,
+      metadata: {
+        title: result.entry.title,
+        description: result.entry.description,
+        status: result.entry.status,
+        indicatorId: result.entry.indicatorId,
+        version: result.version.version
+      }
     });
 
     return res.status(201).json({
@@ -131,6 +147,7 @@ const getEntryById = async (req, res) => {
   }
 };
 
+
 // GET ALL ENTRIES
 const getAllEntries = async (req, res) => {
   try {
@@ -186,7 +203,6 @@ const updateEntry = async (req, res) => {
     const { id } = req.params;
     const { title, description, status, indicatorId } = req.body;
 
-    // Check whether entry exists
     const existingEntry = await prisma.entry.findUnique({
       where: { id }
     });
@@ -198,16 +214,16 @@ const updateEntry = async (req, res) => {
       });
     }
 
-    // Validate title if provided
-    if (title !== undefined &&
-        (typeof title !== "string" || !title.trim())) {
+    if (
+      title !== undefined &&
+      (typeof title !== "string" || !title.trim())
+    ) {
       return res.status(400).json({
         success: false,
         message: "Entry title cannot be empty"
       });
     }
 
-    // Validate status if provided
     const allowedStatuses = [
       "DRAFT",
       "SUBMITTED",
@@ -215,15 +231,16 @@ const updateEntry = async (req, res) => {
       "REJECTED"
     ];
 
-    if (status !== undefined &&
-        !allowedStatuses.includes(status)) {
+    if (
+      status !== undefined &&
+      !allowedStatuses.includes(status)
+    ) {
       return res.status(400).json({
         success: false,
         message: "Invalid entry status"
       });
     }
 
-    // Validate indicator if provided
     if (indicatorId !== undefined) {
       const indicator = await prisma.indicator.findUnique({
         where: { id: indicatorId }
@@ -237,7 +254,7 @@ const updateEntry = async (req, res) => {
       }
     }
 
-    // Update entry and create a new version together
+    // UPDATE ENTRY + CREATE NEW VERSION
     const result = await prisma.$transaction(async (tx) => {
 
       const updatedEntry = await tx.entry.update({
@@ -277,6 +294,21 @@ const updateEntry = async (req, res) => {
         entry: updatedEntry,
         version: newVersion
       };
+    });
+
+    // UPDATE AUDIT LOG
+    await createAuditLog({
+      action: "UPDATE",
+      entity: "ENTRY",
+      entityId: result.entry.id,
+      userId: req.user.id,
+      metadata: {
+        title: result.entry.title,
+        description: result.entry.description,
+        status: result.entry.status,
+        indicatorId: result.entry.indicatorId,
+        version: result.version.version
+      }
     });
 
     return res.status(200).json({
@@ -355,6 +387,5 @@ module.exports = {
   getEntryById,
   getAllEntries,
   updateEntry,
-getEntryVersions
+  getEntryVersions
 };
-

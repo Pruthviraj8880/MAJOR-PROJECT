@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const prisma = require("../utils/prisma");
+const createAuditLog = require("../utils/auditLogger");
 
 // REGISTER
 const register = async (req, res) => {
@@ -36,8 +37,6 @@ const register = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Public registration always creates a STUDENT.
-    // Admin/Faculty roles should be assigned by an authorized admin.
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
@@ -115,6 +114,18 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    // Record successful login
+    await createAuditLog({
+      action: "LOGIN",
+      entity: "USER",
+      entityId: user.id,
+      userId: user.id,
+      metadata: {
+        email: user.email,
+        role: user.role
+      }
+    });
 
     const safeUser = {
       id: user.id,
