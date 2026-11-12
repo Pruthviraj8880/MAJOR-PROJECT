@@ -1,0 +1,278 @@
+/* ==========================================================
+   style.css — Single stylesheet for the whole app.
+   Neutral palette, no gradients, no flashy effects.
+   ========================================================== */
+
+/* --- Reset & base ---------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:        #f5f5f5;
+  --surface:   #ffffff;
+  --border:    #ddd;
+  --text:      #333;
+  --text-light:#777;
+  --primary:   #2563eb;
+  --primary-hover: #1d4ed8;
+  --danger:    #dc2626;
+  --success:   #16a34a;
+  --warning:   #d97706;
+  --radius:    6px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* --- Navbar ---------------------------------------------- */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+}
+
+.navbar .brand {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary);
+}
+
+#nav-links {
+  display: flex;
+  gap: 4px;
+}
+
+#nav-links a {
+  text-decoration: none;
+  color: var(--text-light);
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+#nav-links a:hover { background: #f0f0f0; }
+#nav-links a.active { color: var(--primary); background: #eff6ff; }
+
+.navbar .user-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.navbar .user-area button {
+  background: none;
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.navbar .user-area button:hover { background: #f0f0f0; }
+
+/* --- Page container -------------------------------------- */
+.page {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+/* --- Cards ----------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+/* --- Login page ------------------------------------------ */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px;
+  width: 380px;
+}
+
+.login-box h1 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.login-box p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* --- Forms ----------------------------------------------- */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* --- Buttons --------------------------------------------- */
+.btn {
+  display: inline-block;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-family: inherit;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-primary:disabled { opacity: 0.6; cursor: default; }
+
+.btn-danger  { background: var(--danger); color: #fff; }
+.btn-danger:hover  { background: #b91c1c; }
+
+.btn-outline {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { background: #f0f0f0; }
+
+/* --- Status badges --------------------------------------- */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-pending  { background: #fef3c7; color: var(--warning); }
+.badge-approved { background: #dcfce7; color: var(--success); }
+.badge-rejected { background: #fee2e2; color: var(--danger); }
+
+/* --- Tables ---------------------------------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--text-light);
+  background: #fafafa;
+}
+
+/* --- Error text ------------------------------------------ */
+.error-text {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* --- Toast notification ---------------------------------- */
+.toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  color: #fff;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 1000;
+}
+
+.toast.show  { opacity: 1; transform: translateY(0); }
+.toast-success { background: var(--success); }
+.toast-error   { background: var(--danger); }
+
+/* --- Stats grid (dashboard) ------------------------------ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.stat-card .number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.stat-card .label {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
