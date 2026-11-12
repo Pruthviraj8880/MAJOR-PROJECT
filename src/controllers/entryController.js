@@ -14,7 +14,18 @@ const createEntry = async (req, res) => {
       });
     }
 
-    if (!indicatorId) {
+    if (
+      description !== undefined &&
+      description !== null &&
+      typeof description !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Description must be a string"
+      });
+    }
+
+    if (!indicatorId || typeof indicatorId !== "string") {
       return res.status(400).json({
         success: false,
         message: "Indicator ID is required"
@@ -60,7 +71,6 @@ const createEntry = async (req, res) => {
       return { entry, version };
     });
 
-    // CREATE AUDIT LOG
     await createAuditLog({
       action: "CREATE",
       entity: "ENTRY",
@@ -118,9 +128,7 @@ const getEntryById = async (req, res) => {
           }
         },
         versions: {
-          orderBy: {
-            version: "desc"
-          }
+          orderBy: { version: "desc" }
         }
       }
     });
@@ -170,9 +178,7 @@ const getAllEntries = async (req, res) => {
           }
         },
         versions: {
-          orderBy: {
-            version: "desc"
-          }
+          orderBy: { version: "desc" }
         }
       },
       orderBy: {
@@ -224,6 +230,17 @@ const updateEntry = async (req, res) => {
       });
     }
 
+    if (
+      description !== undefined &&
+      description !== null &&
+      typeof description !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Description must be a string"
+      });
+    }
+
     const allowedStatuses = [
       "DRAFT",
       "SUBMITTED",
@@ -241,6 +258,27 @@ const updateEntry = async (req, res) => {
       });
     }
 
+    // ONLY ADMIN CAN APPROVE OR REJECT
+    if (
+      (status === "APPROVED" || status === "REJECTED") &&
+      req.user.role !== "ADMIN"
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Only Admin can approve or reject entries"
+      });
+    }
+
+    if (
+      indicatorId !== undefined &&
+      (typeof indicatorId !== "string" || !indicatorId.trim())
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid indicator ID"
+      });
+    }
+
     if (indicatorId !== undefined) {
       const indicator = await prisma.indicator.findUnique({
         where: { id: indicatorId }
@@ -254,9 +292,19 @@ const updateEntry = async (req, res) => {
       }
     }
 
-    // UPDATE ENTRY + CREATE NEW VERSION
-    const result = await prisma.$transaction(async (tx) => {
+    if (
+      title === undefined &&
+      description === undefined &&
+      status === undefined &&
+      indicatorId === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide at least one field to update"
+      });
+    }
 
+    const result = await prisma.$transaction(async (tx) => {
       const updatedEntry = await tx.entry.update({
         where: { id },
         data: {
@@ -296,7 +344,6 @@ const updateEntry = async (req, res) => {
       };
     });
 
-    // UPDATE AUDIT LOG
     await createAuditLog({
       action: "UPDATE",
       entity: "ENTRY",

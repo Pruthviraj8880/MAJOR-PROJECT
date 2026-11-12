@@ -44,7 +44,6 @@ router.post(
 );
 
 // UPDATE ENTRY
-// UPDATE ENTRY
 router.put(
   "/:id",
   authorizeRoles("ADMIN", "FACULTY"),
