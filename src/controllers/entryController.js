@@ -233,6 +233,7 @@ const getAllEntries = async (req, res) => {
 
 
 // UPDATE ENTRY + CREATE NEW VERSION
+
 const updateEntry = async (req, res) => {
   try {
     const { id } = req.params;
@@ -249,6 +250,7 @@ const updateEntry = async (req, res) => {
       });
     }
 
+    // Validate title
     if (
       title !== undefined &&
       (typeof title !== "string" || !title.trim())
@@ -259,6 +261,7 @@ const updateEntry = async (req, res) => {
       });
     }
 
+    // Validate description
     if (
       description !== undefined &&
       description !== null &&
@@ -270,6 +273,7 @@ const updateEntry = async (req, res) => {
       });
     }
 
+    // Validate status
     const allowedStatuses = [
       "DRAFT",
       "SUBMITTED",
@@ -298,6 +302,7 @@ const updateEntry = async (req, res) => {
       });
     }
 
+    // Validate indicator ID
     if (
       indicatorId !== undefined &&
       (typeof indicatorId !== "string" || !indicatorId.trim())
@@ -321,6 +326,7 @@ const updateEntry = async (req, res) => {
       }
     }
 
+    // Check that at least one field is provided
     if (
       title === undefined &&
       description === undefined &&
@@ -333,46 +339,82 @@ const updateEntry = async (req, res) => {
       });
     }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const updatedEntry = await tx.entry.update({
-        where: { id },
-        data: {
-          ...(title !== undefined && { title: title.trim() }),
-          ...(description !== undefined && {
-            description: description?.trim() || null
-          }),
-          ...(status !== undefined && { status }),
-          ...(indicatorId !== undefined && { indicatorId })
-        }
-      });
+    let result;
 
-      const latestVersion = await tx.entryVersion.findFirst({
-        where: { entryId: id },
-        orderBy: { version: "desc" }
-      });
+    // Retry transaction if concurrent updates conflict
+    const maxRetries = 3;
 
-      const newVersionNumber = (latestVersion?.version || 0) + 1;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await prisma.$transaction(
+          async (tx) => {
+            // Update entry
+            const updatedEntry = await tx.entry.update({
+              where: { id },
+              data: {
+                ...(title !== undefined && {
+                  title: title.trim()
+                }),
+                ...(description !== undefined && {
+                  description: description?.trim() || null
+                }),
+                ...(status !== undefined && { status }),
+                ...(indicatorId !== undefined && { indicatorId })
+              }
+            });
 
-      const newVersion = await tx.entryVersion.create({
-        data: {
-          entryId: id,
-          version: newVersionNumber,
-          data: {
-            title: updatedEntry.title,
-            description: updatedEntry.description,
-            status: updatedEntry.status,
-            indicatorId: updatedEntry.indicatorId
+            // Get latest version inside transaction
+            const latestVersion = await tx.entryVersion.findFirst({
+              where: { entryId: id },
+              orderBy: { version: "desc" }
+            });
+
+            const newVersionNumber =
+              (latestVersion?.version || 0) + 1;
+
+            // Create new version
+            const newVersion = await tx.entryVersion.create({
+              data: {
+                entryId: id,
+                version: newVersionNumber,
+                data: {
+                  title: updatedEntry.title,
+                  description: updatedEntry.description,
+                  status: updatedEntry.status,
+                  indicatorId: updatedEntry.indicatorId
+                },
+                createdById: req.user.id
+              }
+            });
+
+            return {
+              entry: updatedEntry,
+              version: newVersion
+            };
           },
-          createdById: req.user.id
+          {
+            isolationLevel: "Serializable"
+          }
+        );
+
+        // Transaction succeeded
+        break;
+
+      } catch (error) {
+        // Retry only serialization conflicts
+        if (error.code === "P2034" && attempt < maxRetries) {
+          console.log(
+            `Concurrent update detected. Retrying attempt ${attempt + 1}...`
+          );
+
+          continue;
         }
-      });
 
-      return {
-        entry: updatedEntry,
-        version: newVersion
-      };
-    });
+        throw error;
+      }
+    }
 
+    // Create audit log after successful transaction
     await createAuditLog({
       action: "UPDATE",
       entity: "ENTRY",
@@ -396,6 +438,13 @@ const updateEntry = async (req, res) => {
 
   } catch (error) {
     console.error("Update entry error:", error);
+
+    if (error.code === "P2034") {
+      return res.status(409).json({
+        success: false,
+        message: "Entry was updated concurrently. Please retry your request."
+      });
+    }
 
     return res.status(500).json({
       success: false,
