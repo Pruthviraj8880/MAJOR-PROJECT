@@ -69,25 +69,38 @@ function escapeQuotes(str) {
 }
 
 // Populate form when clicking 'Edit'
-function startEditIndicator(id, name, category, description) {
+function startEditIndicator(id, name, category, unit, department, isActive) {
   editingIndicatorId = id;
-  document.getElementById('form-title').textContent = 'Edit Indicator';
-  document.getElementById('ind-name').value = name;
-  document.getElementById('ind-category').value = category;
-  document.getElementById('ind-desc').value = description;
+  var titleEl = document.getElementById('ind-form-title') || document.getElementById('form-title');
+  if (titleEl) titleEl.textContent = 'Edit Indicator';
 
-  document.getElementById('ind-save-btn').textContent = 'Update Indicator';
-  document.getElementById('ind-cancel-btn').style.display = 'inline-block';
+  if (document.getElementById('ind-name')) document.getElementById('ind-name').value = name || '';
+  if (document.getElementById('ind-category')) document.getElementById('ind-category').value = category || 'Research';
+  if (document.getElementById('ind-unit')) document.getElementById('ind-unit').value = unit || 'count';
+  if (document.getElementById('ind-dept')) document.getElementById('ind-dept').value = department || '';
+  if (document.getElementById('ind-active')) document.getElementById('ind-active').checked = (isActive !== false);
+
+  var saveBtn = document.getElementById('ind-save-btn');
+  if (saveBtn) saveBtn.textContent = 'Update Indicator';
+  var cancelBtn = document.getElementById('ind-cancel-btn');
+  if (cancelBtn) cancelBtn.style.display = 'inline-block';
 }
 
 // Reset form back to 'Create' mode
 function resetIndicatorForm() {
   editingIndicatorId = null;
-  document.getElementById('form-title').textContent = 'Add New Indicator';
-  document.getElementById('indicator-form').reset();
+  var titleEl = document.getElementById('ind-form-title') || document.getElementById('form-title');
+  if (titleEl) titleEl.textContent = 'Add New Indicator';
 
-  document.getElementById('ind-save-btn').textContent = 'Create Indicator';
-  document.getElementById('ind-cancel-btn').style.display = 'none';
+  var form = document.getElementById('indicator-form');
+  if (form) form.reset();
+
+  if (document.getElementById('ind-active')) document.getElementById('ind-active').checked = true;
+
+  var saveBtn = document.getElementById('ind-save-btn');
+  if (saveBtn) saveBtn.textContent = 'Create Indicator';
+  var cancelBtn = document.getElementById('ind-cancel-btn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 // Validate that indicator name is not empty
