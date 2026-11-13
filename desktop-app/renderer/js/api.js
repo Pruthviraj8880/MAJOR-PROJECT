@@ -56,7 +56,12 @@ function loginUser(email, password) {
 // --- Indicators ------------------------------------------
 
 function getIndicators() {
-  return apiRequest('/api/indicators');
+  return apiRequest('/api/indicators').then(function (res) {
+    if (res && res.indicators && Array.isArray(res.indicators)) {
+      return res.indicators;
+    }
+    return Array.isArray(res) ? res : [];
+  });
 }
 
 function createIndicator(indicator) {
