@@ -24,12 +24,13 @@ const users = [
   { id: 3, name: 'Riya Patel',   email: 'student@inst.edu', password: 'student123', role: 'student' }
 ];
 
-let nextIndicatorId = 5;
+let nextIndicatorId = 6;
 let indicators = [
-  { id: 1, name: 'Research Papers',   description: 'Published journal/conference papers', category: 'Research' },
-  { id: 2, name: 'Patents Filed',     description: 'Patents applied for or granted',      category: 'IP' },
-  { id: 3, name: 'Grants Received',   description: 'Funding from external agencies',      category: 'Funding' },
-  { id: 4, name: 'Startups Incubated', description: 'Student or faculty-led startups',     category: 'Entrepreneurship' }
+  { id: 1, name: 'Research Papers',   category: 'Research', unit: 'count',  department: 'Computer Science', isActive: true,  description: 'Published journal/conference papers' },
+  { id: 2, name: 'Patents Filed',     category: 'IP',       unit: 'count',  department: 'Electronics',      isActive: true,  description: 'Patents applied for or granted' },
+  { id: 3, name: 'Grants Received',   category: 'Funding',  unit: 'amount', department: 'Civil Engg',       isActive: true,  description: 'Funding from external agencies' },
+  { id: 4, name: 'Startups Incubated', category: 'Startup',  unit: 'count',  department: 'Innovation Cell',  isActive: true,  description: 'Student or faculty-led startups' },
+  { id: 5, name: 'National Awards',   category: 'Award',    unit: 'count',  department: 'Institute Level',  isActive: false, description: 'Awards and recognitions received' }
 ];
 
 let nextEntryId = 5;
