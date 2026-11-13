@@ -110,7 +110,18 @@ function handleIndicatorSubmit(event) {
     return;
   }
 
-  var payload = { name: name, category: category, description: description };
+  var categoryEl = document.getElementById('ind-category');
+  var unitEl = document.getElementById('ind-unit');
+  var deptEl = document.getElementById('ind-dept');
+  var activeEl = document.getElementById('ind-active');
+
+  var payload = {
+    name: name,
+    category: categoryEl ? categoryEl.value : 'Research',
+    unit: unitEl ? unitEl.value : 'count',
+    department: deptEl ? deptEl.value.trim() : '',
+    isActive: activeEl ? activeEl.checked : true
+  };
   var saveBtn = document.getElementById('ind-save-btn');
   saveBtn.disabled = true;
 
