@@ -200,6 +200,8 @@ body {
 .badge-pending  { background: #fef3c7; color: var(--warning); }
 .badge-approved { background: #dcfce7; color: var(--success); }
 .badge-rejected { background: #fee2e2; color: var(--danger); }
+.badge-active   { background: #dcfce7; color: var(--success); }
+.badge-inactive { background: #f1f5f9; color: var(--text-light); }
 
 /* --- Tables ---------------------------------------------- */
 table {
