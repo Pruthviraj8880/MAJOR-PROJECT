@@ -27,29 +27,38 @@ function initIndicatorsPage() {
 // Fetch all indicators from backend and display in the table
 function loadIndicatorsTable() {
   var tbody = document.getElementById('indicators-body');
-  tbody.innerHTML = '<tr><td colspan="4" style="color:#999;">Loading…</td></tr>';
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="color:#999;">Loading indicators…</td></tr>';
 
   getIndicators()
     .then(function (indicators) {
       if (indicators.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="color:#999;">No indicators created yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#999;">No indicators created yet.</td></tr>';
         return;
       }
 
       tbody.innerHTML = indicators.map(function (item) {
+        var active = (item.isActive !== false);
+        var activeBadge = active
+          ? '<span class="badge badge-active">Active</span>'
+          : '<span class="badge badge-inactive">Inactive</span>';
+        var dept = (item.department && typeof item.department === 'object') ? item.department.name : (item.department || '—');
+
         return '<tr>' +
           '<td><strong>' + item.name + '</strong></td>' +
-          '<td>' + (item.category || 'General') + '</td>' +
-          '<td>' + (item.description || '—') + '</td>' +
+          '<td>' + (item.category || '—') + '</td>' +
+          '<td>' + (item.unit || 'count') + '</td>' +
+          '<td>' + dept + '</td>' +
+          '<td>' + activeBadge + '</td>' +
           '<td>' +
-            '<button class="btn btn-outline" style="padding:4px 8px; font-size:12px; margin-right:6px;" onclick="startEditIndicator(' + item.id + ', \'' + escapeQuotes(item.name) + '\', \'' + escapeQuotes(item.category || '') + '\', \'' + escapeQuotes(item.description || '') + '\')">Edit</button>' +
-            '<button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="handleDeleteIndicator(' + item.id + ')">Delete</button>' +
+            '<button class="btn btn-outline" style="padding:4px 8px; font-size:12px; margin-right:6px;" onclick="startEditIndicator(\'' + item.id + '\', \'' + escapeQuotes(item.name) + '\', \'' + escapeQuotes(item.category || '') + '\', \'' + escapeQuotes(item.unit || 'count') + '\', \'' + escapeQuotes(dept === '—' ? '' : dept) + '\', ' + active + ')">Edit</button>' +
+            '<button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="handleDeleteIndicator(\'' + item.id + '\')">Delete</button>' +
           '</td>' +
           '</tr>';
       }).join('');
     })
     .catch(function (err) {
-      tbody.innerHTML = '<tr><td colspan="4" class="error-text">Failed to load indicators</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="error-text">Failed to load indicators</td></tr>';
       showToast(err.message, 'error');
     });
 }
