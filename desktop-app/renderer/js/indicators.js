@@ -90,16 +90,23 @@ function resetIndicatorForm() {
   document.getElementById('ind-cancel-btn').style.display = 'none';
 }
 
+// Validate that indicator name is not empty
+function validateIndicatorName(name) {
+  if (!name || name.trim() === '') {
+    showToast('Indicator name is required and cannot be empty', 'error');
+    var input = document.getElementById('ind-name');
+    if (input) input.focus();
+    return false;
+  }
+  return true;
+}
+
 // Handle form submit (both Create and Update)
 function handleIndicatorSubmit(event) {
   event.preventDefault();
 
   var name = document.getElementById('ind-name').value.trim();
-  var category = document.getElementById('ind-category').value.trim();
-  var description = document.getElementById('ind-desc').value.trim();
-
-  if (!name) {
-    showToast('Name is required', 'error');
+  if (!validateIndicatorName(name)) {
     return;
   }
 
