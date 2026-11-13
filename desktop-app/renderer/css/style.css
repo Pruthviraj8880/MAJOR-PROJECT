@@ -276,3 +276,120 @@ th {
   margin-top: 4px;
 }
 
+/* --- Sidebar App Layout --- */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary);
+}
+
+.sidebar-user {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #fafafa;
+}
+
+.sidebar-user .user-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-user .user-role {
+  display: inline-block;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-light);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.sidebar-menu .menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-menu .menu-item:hover {
+  background: #f0f0f0;
+}
+
+.sidebar-menu .menu-item.active {
+  background: #eff6ff;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-footer .btn-logout {
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--danger);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.sidebar-footer .btn-logout:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+.page-section {
+  display: none;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
