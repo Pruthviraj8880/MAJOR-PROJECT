@@ -7,10 +7,10 @@
 function handleLogin(event) {
   event.preventDefault();
 
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const errorDiv = document.getElementById('login-error');
-  const btn = document.getElementById('login-btn');
+  var email = document.getElementById('email').value.trim();
+  var password = document.getElementById('password').value;
+  var errorDiv = document.getElementById('login-error');
+  var btn = document.getElementById('login-btn');
 
   errorDiv.textContent = '';
   btn.disabled = true;
@@ -18,13 +18,21 @@ function handleLogin(event) {
 
   loginUser(email, password)
     .then(function (data) {
-      // Save the JWT and user details for other pages to read
+      var user = data.user || {};
+      var normalizedRole = (user.role || '').toLowerCase();
+
+      // Save token and normalized user info in localStorage
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', JSON.stringify({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: normalizedRole
+      }));
       window.location.href = 'dashboard.html';
     })
     .catch(function (err) {
-      errorDiv.textContent = err.message;
+      errorDiv.textContent = err.message || 'Login failed';
       btn.disabled = false;
       btn.textContent = 'Log In';
     });
