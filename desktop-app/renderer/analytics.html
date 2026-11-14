@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics & Insights — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/analytics.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <span class="brand">Innovation Portal</span>
+      <div id="nav-links">
+        <a href="dashboard.html">← Back to Dashboard</a>
+      </div>
+    </div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- Main Analytics Page Container -->
+  <div class="analytics-container">
+
+    <!-- Page Header -->
+    <div class="analytics-header">
+      <div>
+        <h1>Innovation Analytics & Insights</h1>
+        <p>Comprehensive overview of institutional innovation metrics and performance indicators</p>
+      </div>
+      <div class="analytics-actions">
+        <button class="btn btn-outline" onclick="initAnalytics()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="analytics-loading" class="state-container">
+      <div class="spinner"></div>
+      <h3>Loading Analytics Data</h3>
+      <p>Fetching and aggregating achievement records across departments…</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="analytics-empty" class="state-container" style="display:none;">
+      <div class="state-icon">📊</div>
+      <h3>No Innovation Entries Found</h3>
+      <p>There are no recorded achievement submissions yet. Once entries are added, analytics charts will appear here.</p>
+      <a href="dashboard.html" class="btn btn-primary" style="display:inline-block; text-decoration:none; margin-top:8px;">Go to Dashboard</a>
+    </div>
+
+    <!-- Error State -->
+    <div id="analytics-error" class="state-container" style="display:none;">
+      <div class="state-icon" style="color:var(--danger);">⚠️</div>
+      <h3>Failed to Load Analytics</h3>
+      <p id="error-message">Could not reach the server or fetch records.</p>
+      <button class="btn btn-primary" onclick="initAnalytics()">Try Again</button>
+    </div>
+
+    <!-- Analytics Ready Content -->
+    <div id="analytics-content" style="display:none;">
+
+      <!-- 4 Summary Metric Cards -->
+      <div class="summary-cards-grid">
+        <div class="summary-card card-total">
+          <div class="summary-card-info">
+            <span class="summary-card-label">Total Entries</span>
+            <span id="val-total" class="summary-card-value">0</span>
+          </div>
+          <div class="summary-card-icon">📋</div>
+        </div>
+
+        <div class="summary-card card-approved">
+          <div class="summary-card-info">
+            <span class="summary-card-label">Approved</span>
+            <span id="val-approved" class="summary-card-value">0</span>
+          </div>
+          <div class="summary-card-icon">✅</div>
+        </div>
+
+        <div class="summary-card card-pending">
+          <div class="summary-card-info">
+            <span class="summary-card-label">Pending Review</span>
+            <span id="val-pending" class="summary-card-value">0</span>
+          </div>
+          <div class="summary-card-icon">⏳</div>
+        </div>
+
+        <div class="summary-card card-rejected">
+          <div class="summary-card-info">
+            <span class="summary-card-label">Rejected</span>
+            <span id="val-rejected" class="summary-card-value">0</span>
+          </div>
+          <div class="summary-card-icon">❌</div>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+
+        <!-- Chart 1: Entries per Year -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h2>Entries per Year</h2>
+            <span>Annual volume</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-year"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Entries per Department -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h2>Entries per Department</h2>
+            <span>Department distribution</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-dept"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Entries by Status -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h2>Entries by Status</h2>
+            <span>Workflow breakdown</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-status"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 4: Monthly Trend -->
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <h2>Monthly Submission Trend</h2>
+            <span>Rolling last 12 months</span>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chart-trend"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="../config.js"></script>
+  <script src="js/lib/chart.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/analytics.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initAnalytics);
+  </script>
+
+</body>
+</html>
+
