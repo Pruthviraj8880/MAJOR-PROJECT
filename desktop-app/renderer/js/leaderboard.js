@@ -382,3 +382,4 @@ function showLeaderboardState(state) {
   if (errorEl) errorEl.style.display = (state === 'error') ? 'block' : 'none';
   if (contentEl) contentEl.style.display = (state === 'ready') ? 'block' : 'none';
 }
+
