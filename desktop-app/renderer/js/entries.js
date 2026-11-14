@@ -37,6 +37,51 @@ function loadIndicatorDropdown(selectId) {
     });
 }
 
+// Load and display entries submitted by current user
+function loadMyEntries() {
+  var tbody = document.getElementById('my-entries-body');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="color:#999;">Loading your entries…</td></tr>';
+
+  var user = currentUser || getCurrentUser();
+  if (!user) return;
+
+  getEntries().then(function (entries) {
+    allEntries = entries;
+    var mine = entries.filter(function (e) {
+      return String(e.submittedBy) === String(user.id) || e.submittedByName === user.name;
+    });
+    renderMyEntriesTable(mine);
+  }).catch(function (err) {
+    tbody.innerHTML = '<tr><td colspan="5" class="error-text">Failed to load entries</td></tr>';
+  });
+}
+
+function renderMyEntriesTable(entries) {
+  var tbody = document.getElementById('my-entries-body');
+  if (!tbody) return;
+
+  if (entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:#999;">No entries submitted yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = entries.map(function (e) {
+    var badgeClass = 'badge-' + (e.status || 'pending');
+    var vBadge = e.version ? '<span class="badge-version">v' + e.version + '</span>' : '';
+    var dateStr = e.date || e.createdAt || '—';
+    var indName = e.indicatorName || indicatorMap[e.indicatorId] || '—';
+
+    return '<tr class="clickable-row" onclick="viewEntryDetail(' + e.id + ')">' +
+      '<td><strong>' + e.title + '</strong>' + vBadge + '<br><small style="color:#666;">' + (e.description ? e.description.slice(0, 45) + '…' : '') + '</small></td>' +
+      '<td>' + indName + '</td>' +
+      '<td>' + dateStr + '</td>' +
+      '<td><span class="badge ' + badgeClass + '">' + e.status + '</span></td>' +
+      '<td><button class="btn btn-outline" style="padding:3px 8px; font-size:12px;" onclick="event.stopPropagation(); viewEntryDetail(' + e.id + ')">Details</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
 // Load and render all entries from backend
 function loadEntriesList() {
   var tbody = document.getElementById('entries-body');
