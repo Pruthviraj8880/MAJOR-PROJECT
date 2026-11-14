@@ -1,101 +1,110 @@
 // ============================================================
-// comments.js — Handles displaying entry details and comment thread.
-// Students, faculty, and admins can view and post feedback comments.
+// js/comments.js — Feedback & discussion thread for entries
+// Allows any logged-in user (admin, faculty, student) to read
+// and post comments under an entry (GET/POST /api/entries/:id/comments).
+// Maximum ~150 lines for viva clarity.
 // ============================================================
 
-var currentEntryId = null;
+var currentCommentEntryId = null;
 
-function initEntryDetailPage() {
-  var user = requireAuth();
-  if (!user) return;
+/**
+ * Mounts a full comments component into any container element.
+ * @param {string} containerId - DOM ID of container element
+ * @param {number|string} entryId - The entry to load comments for
+ */
+function renderCommentsSection(containerId, entryId) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  currentCommentEntryId = entryId;
 
-  setText('user-info', user.name + ' (' + user.role + ')');
-  buildNav(user.role);
+  container.innerHTML =
+    '<div class="comments-section">' +
+      '<h3>💬 Feedback & Comments</h3>' +
+      '<div id="' + containerId + '-list" class="comments-list">' +
+        '<div style="color:#888; font-size:13px;">Loading comments…</div>' +
+      '</div>' +
+      '<form id="' + containerId + '-form" class="comment-form" onsubmit="handleCommentSubmit(event, \'' + containerId + '\', ' + entryId + ')">' +
+        '<textarea id="' + containerId + '-input" placeholder="Write feedback or a note on this entry…" required></textarea>' +
+        '<div style="display:flex; justify-content:flex-end;">' +
+          '<button type="submit" id="' + containerId + '-btn" class="btn btn-primary" style="padding:6px 14px; font-size:13px;">Post Comment</button>' +
+        '</div>' +
+      '</form>' +
+    '</div>';
 
-  // Extract ?id=... from the page URL
-  var params = new URLSearchParams(window.location.search);
-  currentEntryId = params.get('id');
-
-  if (!currentEntryId) {
-    alert('No entry ID provided');
-    window.location.href = 'entries.html';
-    return;
-  }
-
-  loadEntryDetails();
-  loadCommentsList();
+  loadCommentsForContainer(containerId, entryId);
 }
 
-// Fetch and display entry metadata
-function loadEntryDetails() {
-  getEntry(currentEntryId)
-    .then(function (entry) {
-      setText('detail-title', entry.title);
-      setText('detail-indicator', entry.indicatorName || 'General');
-      setText('detail-author', (entry.submittedByName || 'User #' + entry.submittedBy) + ' on ' + (entry.createdAt || ''));
-      setText('detail-description', entry.description || 'No description provided.');
+/**
+ * Fetches comments from API and updates the list display.
+ */
+function loadCommentsForContainer(containerId, entryId) {
+  var listEl = document.getElementById(containerId + '-list');
+  if (!listEl) return;
 
-      var badge = document.getElementById('detail-status');
-      badge.textContent = entry.status;
-      badge.className = 'badge badge-' + entry.status;
-    })
-    .catch(function (err) {
-      showToast('Could not load entry: ' + err.message, 'error');
-    });
-}
-
-// Fetch all comments/feedback for this entry
-function loadCommentsList() {
-  var container = document.getElementById('comments-list');
-  container.innerHTML = '<div style="color:#999; font-size:13px;">Loading comments…</div>';
-
-  getComments(currentEntryId)
+  getComments(entryId)
     .then(function (comments) {
-      if (comments.length === 0) {
-        container.innerHTML = '<div style="color:#999; font-size:13px; font-style:italic;">No comments yet. Start the discussion below.</div>';
+      if (!comments || comments.length === 0) {
+        listEl.innerHTML = '<div style="color:#888; font-size:13px; font-style:italic;">No comments yet. Be the first to leave feedback.</div>';
         return;
       }
 
-      container.innerHTML = comments.map(function (c) {
-        return '<div style="border-bottom:1px solid var(--border); padding:10px 0;">' +
-          '<div style="display:flex; justify-content:space-between; margin-bottom:4px;">' +
-            '<strong style="font-size:13px; color:var(--text);">' + (c.authorName || 'User #' + c.userId) + '</strong>' +
-            '<span style="font-size:12px; color:#999;">' + (c.createdAt || '') + '</span>' +
+      listEl.innerHTML = comments.map(function (c) {
+        var author = c.authorName || c.userName || (c.userId ? 'User #' + c.userId : 'Anonymous');
+        var dateStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Recent';
+        var text = c.text || c.comment || '';
+
+        return '<div class="comment-card">' +
+          '<div class="comment-header">' +
+            '<span class="comment-author">' + escapeHtml(author) + '</span>' +
+            '<span class="comment-date">' + dateStr + '</span>' +
           '</div>' +
-          '<div style="font-size:14px; color:#444; white-space:pre-wrap;">' + c.text + '</div>' +
-          '</div>';
+          '<div class="comment-text">' + escapeHtml(text) + '</div>' +
+        '</div>';
       }).join('');
     })
     .catch(function (err) {
-      container.innerHTML = '<div class="error-text">Failed to load comments</div>';
+      listEl.innerHTML = '<div class="error-text">Failed to load comments: ' + escapeHtml(err.message) + '</div>';
     });
 }
 
-// Post a new comment
-function handleAddComment(event) {
+/**
+ * Handles posting a new comment.
+ */
+function handleCommentSubmit(event, containerId, entryId) {
   event.preventDefault();
+  var input = document.getElementById(containerId + '-input');
+  var btn = document.getElementById(containerId + '-btn');
+  var text = (input ? input.value : '').trim();
 
-  var input = document.getElementById('new-comment-text');
-  var text = input.value.trim();
-  var submitBtn = document.getElementById('btn-post-comment');
+  if (!text) return showToast('Comment cannot be empty', 'error');
 
-  if (!text) return;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Posting…';
+  }
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Posting…';
-
-  addComment(currentEntryId, text)
+  addComment(entryId, text)
     .then(function () {
-      input.value = '';
+      if (input) input.value = '';
       showToast('Comment posted', 'success');
-      loadCommentsList();
+      loadCommentsForContainer(containerId, entryId);
     })
     .catch(function (err) {
-      showToast(err.message, 'error');
+      showToast(err.message || 'Failed to post comment', 'error');
     })
     .finally(function () {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Post Comment';
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Post Comment';
+      }
     });
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
