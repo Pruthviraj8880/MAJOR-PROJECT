@@ -75,3 +75,53 @@ function handleCsvFileSelect(event) {
   });
 }
 
+/**
+ * Validates each CSV row: indicator must exist, date must be valid,
+ * value must be a positive number. Returns enriched row objects.
+ */
+function processParsedCsvRows(rawRows) {
+  parsedCsvRows = [];
+
+  rawRows.forEach(function (row) {
+    var indName = (row.indicator || row.indicatorName || row.indicatorId || '').trim();
+    var title = (row.title || '').trim();
+    var desc = (row.description || '').trim();
+    var dateStr = (row.date || '').trim();
+    var valStr = (row.value || '').trim();
+    var errors = [];
+
+    // 1. Title is required
+    if (!title) errors.push('Title is empty');
+
+    // 2. Match indicator by name or numeric ID
+    var matchedInd = cachedCsvIndicators.find(function (i) {
+      return i.name.toLowerCase() === indName.toLowerCase() || String(i.id) === indName;
+    });
+    if (!indName) errors.push('Indicator missing');
+    else if (!matchedInd) errors.push('Unknown indicator "' + indName + '"');
+
+    // 3. Date must be a valid YYYY-MM-DD
+    var dateValid = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+    if (!dateStr) errors.push('Date missing');
+    else if (!dateValid) errors.push('Invalid date format');
+
+    // 4. Value must be a positive number
+    var numVal = Number(valStr);
+    if (!valStr) errors.push('Value missing');
+    else if (isNaN(numVal) || numVal <= 0) errors.push('Value must be a positive number');
+
+    parsedCsvRows.push({
+      indicatorId: matchedInd ? matchedInd.id : null,
+      indicatorName: matchedInd ? matchedInd.name : indName,
+      title: title,
+      description: desc,
+      date: dateStr,
+      value: numVal,
+      valid: errors.length === 0,
+      errors: errors
+    });
+  });
+
+  renderCsvPreview();
+}
+
