@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificates — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/certificates.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <span class="brand">Innovation Portal</span>
+      <div id="nav-links">
+        <a href="dashboard.html">← Back to Dashboard</a>
+      </div>
+    </div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- Main Certificates Page Container -->
+  <div class="certificates-container">
+
+    <!-- Page Header -->
+    <div class="certificates-header">
+      <div>
+        <h1>Innovation Certificates</h1>
+        <p>Download official PDF certificates of achievement for verified innovation records</p>
+      </div>
+      <div class="certificates-actions">
+        <input
+          type="text"
+          id="search-keyword"
+          class="search-input"
+          placeholder="Search title, person, indicator…"
+          oninput="handleCertificateSearch()"
+        >
+        <button class="btn btn-outline" onclick="initCertificates()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Role Scope Banner -->
+    <div id="role-info-banner" class="role-banner">
+      <!-- Injected dynamically by certificates.js -->
+    </div>
+
+    <!-- Loading State -->
+    <div id="certificates-loading" class="state-container">
+      <div class="spinner"></div>
+      <h3>Loading Certificates</h3>
+      <p>Fetching approved innovation achievements…</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="certificates-empty" class="state-container" style="display:none;">
+      <div class="state-icon">📜</div>
+      <h3>No approved entries yet</h3>
+      <p>Certificates are generated exclusively for approved entries. Submissions will appear here once verified.</p>
+      <a href="dashboard.html" class="btn btn-primary" style="display:inline-block; text-decoration:none; margin-top:8px;">Go to Dashboard</a>
+    </div>
+
+    <!-- Error State -->
+    <div id="certificates-error" class="state-container" style="display:none;">
+      <div class="state-icon" style="color:var(--danger);">⚠️</div>
+      <h3>Failed to Load Certificates</h3>
+      <p id="error-message">Could not retrieve records from the server.</p>
+      <button class="btn btn-primary" onclick="initCertificates()">Try Again</button>
+    </div>
+
+    <!-- Ready Content Card -->
+    <div id="certificates-content" style="display:none;">
+      <div class="certificates-card">
+        <table class="certificates-table">
+          <thead>
+            <tr>
+              <th style="width:36%;">Innovation Title</th>
+              <th style="width:20%;">Indicator</th>
+              <th style="width:18%;">Person</th>
+              <th style="width:14%;">Approval Date</th>
+              <th style="width:12%; text-align:right;">Certificate</th>
+            </tr>
+          </thead>
+          <tbody id="certificates-body">
+            <!-- Rows injected dynamically by certificates.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="../config.js"></script>
+  <script src="js/lib/jspdf.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/certificates.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initCertificates);
+  </script>
+
+</body>
+</html>
+

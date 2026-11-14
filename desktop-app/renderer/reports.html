@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/reports.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <span class="brand">Innovation Portal</span>
+      <div id="nav-links">
+        <a href="dashboard.html">← Back to Dashboard</a>
+      </div>
+    </div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- Main Reports Page Container -->
+  <div class="reports-container">
+
+    <!-- Page Header -->
+    <div class="reports-header">
+      <div>
+        <h1>Innovation Excellence Reports</h1>
+        <p>Generate, filter, and export comprehensive innovation achievement reports in CSV and PDF formats</p>
+      </div>
+      <div class="reports-actions">
+        <button class="btn-export btn-export-csv" onclick="exportCsv()">
+          📥 Download CSV
+        </button>
+        <button class="btn-export btn-export-pdf" onclick="exportPdf()">
+          📄 Download PDF
+        </button>
+        <button class="btn btn-outline" onclick="initReports()">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Scope Banner -->
+    <div id="role-info-banner" class="role-banner">
+      <!-- Injected dynamically by reports.js -->
+    </div>
+
+    <!-- Filters Card -->
+    <div class="filters-card">
+      <div class="filters-header">
+        <span class="filters-title">Filter Criteria</span>
+        <span id="report-row-count" class="row-count-badge">0 entries</span>
+      </div>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="filter-year">Year</label>
+          <select id="filter-year" class="filter-select" onchange="applyFilters()">
+            <option value="all">All Years</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-status">Status</label>
+          <select id="filter-status" class="filter-select" onchange="applyFilters()">
+            <option value="all">All Statuses</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-indicator">Indicator</label>
+          <select id="filter-indicator" class="filter-select" onchange="applyFilters()">
+            <option value="all">All Indicators</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-department">Department</label>
+          <select id="filter-department" class="filter-select" onchange="applyFilters()">
+            <option value="all">All Departments</option>
+          </select>
+        </div>
+
+        <div class="filter-group" style="justify-content:flex-end;">
+          <button class="btn btn-outline" style="height:33px; font-size:12px;" onclick="resetFilters()">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="reports-loading" class="state-container">
+      <div class="spinner"></div>
+      <h3>Loading Report Data</h3>
+      <p>Fetching institutional innovation records across departments…</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="reports-empty" class="state-container" style="display:none;">
+      <div class="state-icon">📊</div>
+      <h3>No Innovation Entries Found</h3>
+      <p>There are no innovation records available to report on yet.</p>
+      <a href="dashboard.html" class="btn btn-primary" style="display:inline-block; text-decoration:none; margin-top:8px;">Go to Dashboard</a>
+    </div>
+
+    <!-- Error State -->
+    <div id="reports-error" class="state-container" style="display:none;">
+      <div class="state-icon" style="color:var(--danger);">⚠️</div>
+      <h3>Failed to Load Reports</h3>
+      <p id="error-message">Could not retrieve records from the server.</p>
+      <button class="btn btn-primary" onclick="initReports()">Try Again</button>
+    </div>
+
+    <!-- Preview Table Card -->
+    <div id="reports-content" style="display:none;">
+      <div class="reports-card">
+        <table class="reports-table">
+          <thead>
+            <tr>
+              <th style="width:32%;">Innovation Title</th>
+              <th style="width:18%;">Indicator</th>
+              <th style="width:18%;">Department</th>
+              <th style="width:14%;">Contributor</th>
+              <th style="width:10%;">Status</th>
+              <th style="width:8%;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="reports-body">
+            <!-- Rows injected dynamically by reports.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="../config.js"></script>
+  <script src="js/lib/jspdf.umd.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/reports.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initReports);
+  </script>
+
+</body>
+</html>
+
