@@ -4,33 +4,36 @@
 var currentUser = null;
 var allEntries = [];
 var indicatorMap = {};
+var editingEntryId = null;
 
 function initEntriesPage() {
   currentUser = requireAuth();
   if (!currentUser) return;
-  setText('user-info', currentUser.name + ' (' + currentUser.role + ')');
-  buildNav(currentUser.role);
-  loadIndicatorDropdown();
+  loadIndicatorDropdown('entry-indicator');
   loadEntriesList();
 }
 
-// Populate the indicator <select> in the form
-function loadIndicatorDropdown() {
-  var select = document.getElementById('entry-indicator');
+// Populate the indicator <select> from the API
+function loadIndicatorDropdown(selectId) {
+  var targetId = selectId || 'entry-indicator';
+  var select = document.getElementById(targetId);
+  if (!select) return;
 
   getIndicators()
     .then(function (indicators) {
       select.innerHTML = '<option value="">-- Select Indicator Type --</option>';
       indicators.forEach(function (ind) {
         indicatorMap[ind.id] = ind.name;
-        var opt = document.createElement('option');
-        opt.value = ind.id;
-        opt.textContent = ind.name + (ind.category ? ' (' + ind.category + ')' : '');
-        select.appendChild(opt);
+        if (ind.isActive !== false) {
+          var opt = document.createElement('option');
+          opt.value = ind.id;
+          opt.textContent = ind.name + (ind.category ? ' (' + ind.category + ')' : '');
+          select.appendChild(opt);
+        }
       });
     })
-    .catch(function (err) {
-      showToast('Could not load indicators for dropdown', 'error');
+    .catch(function () {
+      showToast('Could not load indicators', 'error');
     });
 }
 
