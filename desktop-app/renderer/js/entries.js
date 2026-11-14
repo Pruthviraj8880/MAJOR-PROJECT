@@ -139,29 +139,48 @@ function validateEntryForm(data) {
   return true;
 }
 
-// Submit a new achievement entry
+// Submit or edit an achievement entry
 function handleEntrySubmit(event) {
   event.preventDefault();
-  var indicatorId = document.getElementById('entry-indicator').value;
-  var title = document.getElementById('entry-title').value.trim();
-  var description = document.getElementById('entry-desc').value.trim();
+  var payload = {
+    indicatorId: document.getElementById('entry-indicator').value,
+    title: document.getElementById('entry-title').value.trim(),
+    description: document.getElementById('entry-desc').value.trim(),
+    date: document.getElementById('entry-date').value,
+    value: document.getElementById('entry-val').value,
+    proofLink: (document.getElementById('entry-proof') ? document.getElementById('entry-proof').value.trim() : '')
+  };
+
+  if (!validateEntryForm(payload)) return;
+
   var saveBtn = document.getElementById('entry-save-btn');
-
-  if (!indicatorId) return showToast('Please pick an indicator', 'error');
-
   saveBtn.disabled = true;
-  saveBtn.textContent = 'Submitting…';
+  saveBtn.textContent = editingEntryId ? 'Updating…' : 'Submitting…';
 
-  createEntry({ indicatorId: Number(indicatorId), title: title, description: description })
-    .then(function () {
-      showToast('Achievement submitted successfully!', 'success');
-      document.getElementById('entry-form').reset();
-      loadEntriesList();
-    })
-    .catch(function (err) { showToast(err.message, 'error'); })
-    .finally(function () {
-      saveBtn.disabled = false;
-      saveBtn.textContent = 'Submit Achievement';
-    });
+  var req = editingEntryId ? updateEntry(editingEntryId, payload) : createEntry(payload);
+  req.then(function (result) {
+    var vText = (result && result.version) ? ' (version ' + result.version + ')' : '';
+    showToast(editingEntryId ? 'Entry updated successfully' + vText : 'Achievement submitted successfully' + vText, 'success');
+    resetEntryForm();
+    if (typeof loadMyEntries === 'function') loadMyEntries();
+    if (typeof showSection === 'function') showSection('section-my-entries');
+  }).catch(function (err) {
+    showToast(err.message, 'error');
+  }).finally(function () {
+    saveBtn.disabled = false;
+    saveBtn.textContent = editingEntryId ? 'Update Entry' : 'Submit Achievement';
+  });
+}
+
+function resetEntryForm() {
+  editingEntryId = null;
+  var form = document.getElementById('entry-form');
+  if (form) form.reset();
+  var btn = document.getElementById('entry-save-btn');
+  if (btn) btn.textContent = 'Submit Achievement';
+  var cancelBtn = document.getElementById('entry-cancel-edit-btn');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  var title = document.getElementById('add-entry-heading');
+  if (title) title.textContent = 'Submit Achievement';
 }
 
