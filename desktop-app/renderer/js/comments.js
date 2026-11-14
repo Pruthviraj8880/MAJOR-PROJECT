@@ -108,3 +108,23 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// Standalone entry-detail.html page helpers
+function initEntryDetailPage() {
+  var id = new URLSearchParams(window.location.search).get('id');
+  if (!id) return;
+  getEntry(id).then(function (e) {
+    setText('detail-title', e.title);
+    setText('detail-indicator', e.indicatorName || 'General');
+    setText('detail-author', (e.submittedByName || 'User #' + e.submittedBy) + ' • ' + (e.date || e.createdAt || ''));
+    setText('detail-description', e.description || '');
+    var badge = document.getElementById('detail-status');
+    if (badge) { badge.textContent = e.status; badge.className = 'badge badge-' + e.status; }
+  });
+  renderCommentsSection('comments-list', id);
+}
+
+function handleAddComment(event) {
+  var id = new URLSearchParams(window.location.search).get('id');
+  handleCommentSubmit(event, 'comments-list', id);
+}
