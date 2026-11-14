@@ -1,180 +1,146 @@
 // ============================================================
-// js/csvImport.js — Bulk CSV import module for innovation entries
-// Parses files using PapaParse, validates row data, renders 10-row preview,
-// and submits valid records to POST /api/entries.
-// Maximum ~150 lines for viva clarity.
+// js/csvImport.js — Bulk CSV import using PapaParse.
+// Validates rows, renders 10-row preview, imports valid entries.
 // ============================================================
 
 var parsedCsvRows = [];
 var cachedCsvIndicators = [];
 
-/**
- * Downloads a sample CSV with the expected columns:
- * indicator, title, description, date, value
- */
+// Download a sample CSV so users know the expected format
 function downloadSampleCsv() {
-  var sampleData =
-    'indicator,title,description,date,value\n' +
+  var csv = 'indicator,title,description,date,value\n' +
     'Research Papers,Deep Learning for Medical Diagnosis,Published in IEEE Access,2026-10-15,1\n' +
-    'Patents Filed,IoT Solar Tracking System,Application filed with Indian Patent Office,2026-10-22,1\n' +
+    'Patents Filed,IoT Solar Tracking System,Filed with Indian Patent Office,2026-10-22,1\n' +
     'Grants Received,DST-SERB AI Research Grant,Funded by Dept of Science & Tech,2026-11-01,500000\n' +
-    'Startups Incubated,EduTech Learning Platform,Incubated at Campus Innovation Cell,2026-11-05,1\n' +
-    'National Awards,Smart India Hackathon 1st Prize,Won nationwide technical competition,2026-11-10,1';
-
-  var blob = new Blob([sampleData], { type: 'text/csv;charset=utf-8;' });
+    'Startups Incubated,EduTech Platform,Incubated at Innovation Cell,2026-11-05,1\n' +
+    'National Awards,Smart India Hackathon Prize,Won nationwide competition,2026-11-10,1';
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   var url = URL.createObjectURL(blob);
-  var link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', 'sample_innovation_entries.csv');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'sample_innovation_entries.csv';
+  document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
 
-/**
- * Ensures indicators are cached for row validation.
- */
+// Ensure indicators are cached before validating rows
 function ensureIndicatorsLoaded() {
   if (cachedCsvIndicators.length > 0) return Promise.resolve(cachedCsvIndicators);
-  return getIndicators().then(function (list) {
-    cachedCsvIndicators = list || [];
-    return cachedCsvIndicators;
-  }).catch(function () {
-    cachedCsvIndicators = [];
-    return [];
-  });
+  return getIndicators().then(function (l) { cachedCsvIndicators = l || []; return cachedCsvIndicators; })
+    .catch(function () { cachedCsvIndicators = []; return []; });
 }
 
-/**
- * Handles CSV file selection from the file input.
- * Parses the file on the client using PapaParse.
- */
+// File picker handler — parse the selected CSV on the client
 function handleCsvFileSelect(event) {
   var file = event.target.files && event.target.files[0];
   if (!file) return;
-
   ensureIndicatorsLoaded().then(function () {
-    if (typeof Papa === 'undefined') {
-      return showToast('PapaParse library is not loaded', 'error');
-    }
-
     Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: function (results) {
-        if (!results.data || results.data.length === 0) {
-          return showToast('The selected CSV file is empty', 'error');
-        }
-        processParsedCsvRows(results.data);
+      header: true, skipEmptyLines: true,
+      complete: function (r) {
+        if (!r.data || r.data.length === 0) return showToast('CSV file is empty', 'error');
+        processParsedCsvRows(r.data);
       },
-      error: function (err) {
-        showToast('Failed to parse CSV: ' + err.message, 'error');
-      }
+      error: function (e) { showToast('CSV parse error: ' + e.message, 'error'); }
     });
   });
 }
 
-/**
- * Validates each CSV row: indicator must exist, date must be valid,
- * value must be a positive number. Returns enriched row objects.
- */
+// Validate each row: indicator exists, date YYYY-MM-DD, value > 0
 function processParsedCsvRows(rawRows) {
   parsedCsvRows = [];
-
   rawRows.forEach(function (row) {
-    var indName = (row.indicator || row.indicatorName || row.indicatorId || '').trim();
+    var ind = (row.indicator || row.indicatorName || row.indicatorId || '').trim();
     var title = (row.title || '').trim();
     var desc = (row.description || '').trim();
     var dateStr = (row.date || '').trim();
     var valStr = (row.value || '').trim();
-    var errors = [];
+    var errs = [];
 
-    // 1. Title is required
-    if (!title) errors.push('Title is empty');
-
-    // 2. Match indicator by name or numeric ID
-    var matchedInd = cachedCsvIndicators.find(function (i) {
-      return i.name.toLowerCase() === indName.toLowerCase() || String(i.id) === indName;
+    if (!title) errs.push('Title empty');
+    var match = cachedCsvIndicators.find(function (i) {
+      return i.name.toLowerCase() === ind.toLowerCase() || String(i.id) === ind;
     });
-    if (!indName) errors.push('Indicator missing');
-    else if (!matchedInd) errors.push('Unknown indicator "' + indName + '"');
+    if (!ind) errs.push('Indicator missing');
+    else if (!match) errs.push('Unknown indicator');
 
-    // 3. Date must be a valid YYYY-MM-DD
-    var dateValid = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
-    if (!dateStr) errors.push('Date missing');
-    else if (!dateValid) errors.push('Invalid date format');
+    var dateOk = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) && !isNaN(Date.parse(dateStr));
+    if (!dateStr) errs.push('Date missing');
+    else if (!dateOk) errs.push('Bad date');
 
-    // 4. Value must be a positive number
-    var numVal = Number(valStr);
-    if (!valStr) errors.push('Value missing');
-    else if (isNaN(numVal) || numVal <= 0) errors.push('Value must be a positive number');
+    var num = Number(valStr);
+    if (!valStr) errs.push('Value missing');
+    else if (isNaN(num) || num <= 0) errs.push('Value not a positive number');
 
     parsedCsvRows.push({
-      indicatorId: matchedInd ? matchedInd.id : null,
-      indicatorName: matchedInd ? matchedInd.name : indName,
-      title: title,
-      description: desc,
-      date: dateStr,
-      value: numVal,
-      valid: errors.length === 0,
-      errors: errors
+      indicatorId: match ? match.id : null, indicatorName: match ? match.name : ind,
+      title: title, description: desc, date: dateStr, value: num,
+      valid: errs.length === 0, errors: errs
     });
   });
-
   renderCsvPreview();
 }
 
-/**
- * Renders the first 10 parsed rows in the preview table.
- * Invalid rows are styled in red with the specific error reason.
- */
+// Show first 10 rows; invalid rows in red with error reason
 function renderCsvPreview() {
   var tbody = document.getElementById('preview-body');
-  var importBtn = document.getElementById('btn-execute-import');
+  var btn = document.getElementById('btn-execute-import');
   var countEl = document.getElementById('parsed-count');
   if (!tbody) return;
 
-  var validCount = parsedCsvRows.filter(function (r) { return r.valid; }).length;
-  var invalidCount = parsedCsvRows.length - validCount;
-
-  if (countEl) countEl.textContent = parsedCsvRows.length + ' rows (' + validCount + ' valid, ' + invalidCount + ' invalid)';
+  var validN = parsedCsvRows.filter(function (r) { return r.valid; }).length;
+  var invalidN = parsedCsvRows.length - validN;
+  if (countEl) countEl.textContent = parsedCsvRows.length + ' rows (' + validN + ' valid, ' + invalidN + ' invalid)';
 
   if (parsedCsvRows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="color:#888;">No rows found in the CSV file.</td></tr>';
-    if (importBtn) importBtn.disabled = true;
-    return;
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#888;">No rows found.</td></tr>';
+    if (btn) btn.disabled = true; return;
   }
+  if (btn) btn.disabled = validN === 0;
 
-  // Only enable import if there is at least one valid row
-  if (importBtn) importBtn.disabled = validCount === 0;
-
-  // Show first 10 rows as preview
-  var previewSlice = parsedCsvRows.slice(0, 10);
   var noteEl = document.getElementById('csv-preview-note');
-  if (noteEl) noteEl.textContent = parsedCsvRows.length > 10
-    ? 'Showing first 10 of ' + parsedCsvRows.length + ' rows. All valid rows will be imported.'
-    : '';
+  if (noteEl) noteEl.textContent = parsedCsvRows.length > 10 ? 'Showing 10 of ' + parsedCsvRows.length + ' rows.' : '';
 
-  tbody.innerHTML = previewSlice.map(function (row, idx) {
-    var rowClass = row.valid ? '' : 'row-invalid';
-    var statusBadge = row.valid
-      ? '<span class="badge-valid">✓ Valid</span>'
-      : '<span class="badge-invalid">✕ ' + row.errors.join('; ') + '</span>';
-
-    return '<tr class="' + rowClass + '">' +
-      '<td>' + (idx + 1) + '</td>' +
-      '<td>' + escCsv(row.title || '—') + '</td>' +
-      '<td>' + escCsv(row.indicatorName || '—') + '</td>' +
-      '<td>' + escCsv(row.date || '—') + '</td>' +
-      '<td>' + (row.valid ? row.value : escCsv(String(row.value || '—'))) + '</td>' +
-      '<td>' + statusBadge + '</td>' +
-    '</tr>';
+  var esc = function (s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  tbody.innerHTML = parsedCsvRows.slice(0, 10).map(function (r, i) {
+    var badge = r.valid ? '<span class="badge-valid">✓ Valid</span>' : '<span class="badge-invalid">✕ ' + r.errors.join('; ') + '</span>';
+    return '<tr class="' + (r.valid ? '' : 'row-invalid') + '">' +
+      '<td>' + (i+1) + '</td><td>' + esc(r.title||'—') + '</td><td>' + esc(r.indicatorName||'—') +
+      '</td><td>' + esc(r.date||'—') + '</td><td>' + (r.valid ? r.value : esc(r.value||'—')) +
+      '</td><td>' + badge + '</td></tr>';
   }).join('');
 }
 
-// Simple HTML escape for CSV display values
-function escCsv(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// Import valid rows one-by-one via POST /api/entries, show summary
+async function executeCsvImport() {
+  var btn = document.getElementById('btn-execute-import');
+  if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; }
+
+  var valid = parsedCsvRows.filter(function (r) { return r.valid; });
+  var skipped = parsedCsvRows.length - valid.length;
+  var imported = 0, failed = 0;
+
+  for (var i = 0; i < valid.length; i++) {
+    try {
+      await createEntry({ indicatorId: valid[i].indicatorId, title: valid[i].title,
+        description: valid[i].description, date: valid[i].date, value: valid[i].value });
+      imported++;
+    } catch (e) { failed++; }
+    if (btn) btn.textContent = 'Importing… (' + (i+1) + '/' + valid.length + ')';
+  }
+
+  var msg = imported + ' imported, ' + skipped + ' skipped' + (failed ? ', ' + failed + ' failed' : '');
+  showToast(msg, imported > 0 ? 'success' : 'error');
+
+  // Show summary banner
+  var el = document.getElementById('csv-import-summary');
+  if (el) {
+    el.className = 'import-summary-banner import-summary-success';
+    el.style.display = 'flex';
+    el.innerHTML = '<span>✅ ' + msg + '</span><button class="btn btn-outline" style="padding:4px 10px;font-size:12px;" onclick="this.parentElement.style.display=\'none\'">Dismiss</button>';
+  }
+
+  if (btn) { btn.textContent = 'Import All Entries'; btn.disabled = true; }
+  parsedCsvRows = [];
+  var fi = document.getElementById('dashboard-csv-input');
+  if (fi) fi.value = '';
 }
