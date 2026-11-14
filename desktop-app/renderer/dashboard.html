@@ -132,6 +132,7 @@
           </div>
           <div id="detail-card-proof" style="display:none; font-size:13px; margin-bottom:12px;"></div>
           <div id="detail-rejection-comment" class="rejection-banner" style="display:none;"></div>
+          <div id="my-entry-comments-thread"></div>
           <div style="margin-top:14px; display:flex; gap:10px;">
             <button id="btn-edit-pending-entry" class="btn btn-primary" style="display:none;">Edit Entry</button>
             <button class="btn btn-outline" onclick="closeEntryDetail()">Close</button>
@@ -210,27 +211,30 @@
         <h1 style="margin-bottom:20px;">Pending Approvals</h1>
 
         <!-- Inline Review Box (appears when Review clicked) -->
-        <div id="approval-review-card" class="card" style="display:none; border:2px solid var(--primary);">
+        <div id="approval-review-card" class="card" style="display:none; border:2px solid var(--primary); margin-bottom:20px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div>
               <h2 id="review-entry-title" style="margin-bottom:4px;">Title</h2>
-              <p id="review-entry-meta" style="font-size:13px; color:#666; margin-bottom:12px;"></p>
+              <p id="review-entry-meta" style="font-size:13px; color:#666; margin-bottom:8px;"></p>
+              <p id="review-entry-val" style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:12px;"></p>
             </div>
-            <button class="btn btn-outline" style="padding:2px 8px; font-size:12px;" onclick="closeDashboardReview()">✕ Close</button>
+            <button class="btn btn-outline" style="padding:2px 8px; font-size:12px;" onclick="closeApprovalReview()">✕ Close</button>
           </div>
-          <div style="background:#fafafa; border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-bottom:16px;">
+          <div style="background:#fafafa; border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-bottom:12px;">
             <strong>Details:</strong>
             <p id="review-entry-desc" style="font-size:13px; color:#444; margin-top:4px; white-space:pre-wrap;"></p>
           </div>
-          <div class="form-group">
-            <label for="review-comment-input">Reviewer Comment / Feedback</label>
-            <textarea id="review-comment-input" placeholder="Provide feedback or reason for approval/rejection"></textarea>
+          <div id="review-entry-proof" style="display:none; font-size:13px; margin-bottom:12px;"></div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label for="review-comment-input">Reviewer Feedback / Note <span style="font-size:12px; color:var(--danger);">(Required when rejecting)</span></label>
+            <textarea id="review-comment-input" placeholder="Enter reason for approval or specific reason for rejection…"></textarea>
           </div>
-          <div style="display:flex; gap:12px;">
-            <button id="btn-approve-decision" class="btn" style="background:var(--success); color:#fff;" onclick="submitDashboardDecision('approved')">✓ Approve</button>
-            <button id="btn-reject-decision" class="btn btn-danger" onclick="submitDashboardDecision('rejected')">✕ Reject</button>
-            <button type="button" class="btn btn-outline" onclick="closeDashboardReview()">Cancel</button>
+          <div style="display:flex; gap:12px; margin-bottom:16px;">
+            <button id="btn-approve-decision" class="btn" style="background:var(--success); color:#fff;" onclick="submitApprovalDecision('approved')">✓ Approve</button>
+            <button id="btn-reject-decision" class="btn btn-danger" onclick="submitApprovalDecision('rejected')">✕ Reject</button>
+            <button type="button" class="btn btn-outline" onclick="closeApprovalReview()">Cancel</button>
           </div>
+          <div id="approval-comments-thread"></div>
         </div>
 
         <div class="card">
@@ -246,11 +250,11 @@
           <table>
             <thead>
               <tr>
-                <th style="width:35%;">Title</th>
+                <th style="width:30%;">Title</th>
                 <th style="width:20%;">Indicator</th>
                 <th style="width:20%;">Submitted By</th>
-                <th style="width:12%;">Status</th>
-                <th style="width:13%;">Action</th>
+                <th style="width:15%;">Date</th>
+                <th style="width:15%;">Status</th>
               </tr>
             </thead>
             <tbody id="approvals-body">
@@ -309,8 +313,8 @@
   <script src="js/indicators.js"></script>
   <script src="js/entries.js"></script>
   <script src="js/import.js"></script>
-  <script src="js/approval.js"></script>
   <script src="js/comments.js"></script>
+  <script src="js/approvals.js"></script>
 
   <script>
     // ==========================================================
@@ -340,9 +344,6 @@
         getIndicators().then(function (data) { indicatorList = data; });
       }
     };
-          tbody.innerHTML = '<tr><td colspan="4" class="error-text">Failed to load entries</td></tr>';
-        });
-    }
 
     // --- All Entries Loader (Admin) ---
     var cachedAllEntries = [];
@@ -380,89 +381,11 @@
           '<td>' + (e.indicatorName || '—') + '</td>' +
           '<td>' + (e.submittedByName || 'User #' + e.submittedBy) + '</td>' +
           '<td><span class="badge ' + badgeClass + '">' + e.status + '</span></td>' +
-          '<td><a href="entry-detail.html?id=' + e.id + '" class="btn btn-outline" style="padding:4px 8px; font-size:12px; text-decoration:none;">View / Comments</a></td>' +
+          '<td><button class="btn btn-outline" style="padding:4px 8px; font-size:12px;" onclick="openApprovalReview(' + e.id + ')">Review</button></td>' +
           '</tr>';
       }).join('');
     }
-
-    // --- Approvals Dashboard Logic ---
-    var dashboardReviewEntry = null;
-    function loadApprovalsDashboard() {
-      var tbody = document.getElementById('approvals-body');
-      tbody.innerHTML = '<tr><td colspan="5" style="color:#999;">Loading pending submissions…</td></tr>';
-
-      getEntries()
-        .then(function (entries) {
-          pendingList = entries;
-          renderApprovalsTable();
-        })
-        .catch(function (err) {
-          tbody.innerHTML = '<tr><td colspan="5" class="error-text">Failed to load entries</td></tr>';
-        });
-    }
-
-    function renderApprovalsTable() {
-      var tbody = document.getElementById('approvals-body');
-      var filter = document.getElementById('approval-filter-select').value;
-
-      var filtered = pendingList.filter(function (e) {
-        if (filter === 'all') return true;
-        return e.status === filter;
-      });
-
-      setText('approval-count-badge', filtered.length + ' entries');
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="color:#999;">No entries found.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = filtered.map(function (e) {
-        var badgeClass = 'badge-' + e.status;
-        return '<tr>' +
-          '<td><strong>' + e.title + '</strong><br><small style="color:#666;">' + (e.description || '') + '</small></td>' +
-          '<td>' + (e.indicatorName || '—') + '</td>' +
-          '<td>' + (e.submittedByName || 'User #' + e.submittedBy) + '</td>' +
-          '<td><span class="badge ' + badgeClass + '">' + e.status + '</span></td>' +
-          '<td><button class="btn btn-outline" style="padding:4px 8px; font-size:12px;" onclick="openDashboardReview(' + e.id + ')">Review</button></td>' +
-          '</tr>';
-      }).join('');
-    }
-
-    function openDashboardReview(id) {
-      dashboardReviewEntry = pendingList.find(function (e) { return e.id === id; });
-      if (!dashboardReviewEntry) return;
-
-      document.getElementById('approval-review-card').style.display = 'block';
-      setText('review-entry-title', dashboardReviewEntry.title);
-      setText('review-entry-meta', 'By ' + dashboardReviewEntry.submittedByName + ' • ' + (dashboardReviewEntry.indicatorName || ''));
-      setText('review-entry-desc', dashboardReviewEntry.description || 'No description provided.');
-      document.getElementById('review-comment-input').value = '';
-      document.getElementById('approval-review-card').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function closeDashboardReview() {
-      dashboardReviewEntry = null;
-      document.getElementById('approval-review-card').style.display = 'none';
-    }
-
-    function submitDashboardDecision(status) {
-      if (!dashboardReviewEntry) return;
-      var comment = document.getElementById('review-comment-input').value.trim();
-      if (status === 'rejected' && !comment) {
-        return showToast('Please provide feedback when rejecting', 'error');
-      }
-
-      updateEntryStatus(dashboardReviewEntry.id, status, comment)
-        .then(function () {
-          showToast('Entry marked as ' + status, 'success');
-          closeDashboardReview();
-          loadApprovalsDashboard();
-        })
-        .catch(function (err) {
-          showToast(err.message, 'error');
-        });
-    }
+  </script>
   </script>
 
 </body>
