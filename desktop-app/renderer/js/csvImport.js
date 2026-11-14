@@ -45,3 +45,33 @@ function ensureIndicatorsLoaded() {
     return [];
   });
 }
+
+/**
+ * Handles CSV file selection from the file input.
+ * Parses the file on the client using PapaParse.
+ */
+function handleCsvFileSelect(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  ensureIndicatorsLoaded().then(function () {
+    if (typeof Papa === 'undefined') {
+      return showToast('PapaParse library is not loaded', 'error');
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function (results) {
+        if (!results.data || results.data.length === 0) {
+          return showToast('The selected CSV file is empty', 'error');
+        }
+        processParsedCsvRows(results.data);
+      },
+      error: function (err) {
+        showToast('Failed to parse CSV: ' + err.message, 'error');
+      }
+    });
+  });
+}
+
