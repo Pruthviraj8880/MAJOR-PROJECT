@@ -115,21 +115,42 @@
       <section id="section-my-entries" class="page-section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
           <h1>My Submitted Entries</h1>
-          <button class="btn btn-primary" onclick="showSection('section-add-entry')">+ New Achievement</button>
+          <button class="btn btn-primary" onclick="showSection('section-add-entry')">+ Add Entry</button>
+        </div>
+
+        <!-- Detail Drawer / Card for selected row -->
+        <div id="my-entry-detail-card" class="card" style="display:none; border:2px solid var(--primary); margin-bottom:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+            <h2 id="detail-card-title" style="font-size:18px;">Entry Title</h2>
+            <button class="btn btn-outline" style="padding:2px 8px; font-size:12px;" onclick="closeEntryDetail()">✕ Close</button>
+          </div>
+          <p id="detail-card-meta" style="font-size:13px; color:#666; margin-bottom:8px;"></p>
+          <p id="detail-card-value" style="font-size:13px; font-weight:600; color:var(--text); margin-bottom:12px;"></p>
+          <div style="background:#fafafa; border:1px solid var(--border); border-radius:var(--radius); padding:12px; margin-bottom:12px;">
+            <strong>Description:</strong>
+            <p id="detail-card-desc" style="font-size:13px; color:#444; margin-top:4px; white-space:pre-wrap;"></p>
+          </div>
+          <div id="detail-card-proof" style="display:none; font-size:13px; margin-bottom:12px;"></div>
+          <div id="detail-rejection-comment" class="rejection-banner" style="display:none;"></div>
+          <div style="margin-top:14px; display:flex; gap:10px;">
+            <button id="btn-edit-pending-entry" class="btn btn-primary" style="display:none;">Edit Entry</button>
+            <button class="btn btn-outline" onclick="closeEntryDetail()">Close</button>
+          </div>
         </div>
 
         <div class="card">
           <table>
             <thead>
               <tr>
-                <th style="width:40%;">Title</th>
-                <th style="width:25%;">Indicator</th>
+                <th style="width:35%;">Title</th>
+                <th style="width:20%;">Indicator</th>
+                <th style="width:15%;">Date</th>
                 <th style="width:15%;">Status</th>
-                <th style="width:20%;">Action</th>
+                <th style="width:15%;">Action</th>
               </tr>
             </thead>
             <tbody id="my-entries-body">
-              <tr><td colspan="4" style="color:#999;">Loading your entries…</td></tr>
+              <tr><td colspan="5" style="color:#999;">Loading your entries…</td></tr>
             </tbody>
           </table>
         </div>
@@ -137,29 +158,49 @@
 
       <!-- ================= SECTION: ADD ENTRY (Faculty, Student) ================= -->
       <section id="section-add-entry" class="page-section">
-        <h1 style="margin-bottom:20px;">Submit Achievement</h1>
+        <h1 id="add-entry-heading" style="margin-bottom:20px;">Submit Achievement</h1>
         <div class="card">
           <p style="font-size:13px; color:#666; margin-bottom:16px;">
-            Log your research publication, patent filing, external grant, or startup achievement.
+            Enter your innovation achievement details. All fields except proof link are required.
           </p>
-          <form id="add-entry-form" onsubmit="handleDashboardEntrySubmit(event)">
-            <div style="display:flex; gap:16px;">
-              <div class="form-group" style="flex:1;">
-                <label for="entry-ind-select">Indicator Type *</label>
-                <select id="entry-ind-select" required>
+          <form id="entry-form" onsubmit="handleEntrySubmit(event)">
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+              <div class="form-group" style="flex:1; min-width:220px;">
+                <label for="entry-indicator">Indicator Type *</label>
+                <select id="entry-indicator" required>
                   <option value="">Loading indicators…</option>
                 </select>
               </div>
-              <div class="form-group" style="flex:2;">
-                <label for="entry-title-input">Title / Project Name *</label>
-                <input type="text" id="entry-title-input" placeholder="e.g. High Performance ML Algorithm" required>
+              <div class="form-group" style="flex:2; min-width:280px;">
+                <label for="entry-title">Title / Project Name *</label>
+                <input type="text" id="entry-title" placeholder="e.g. High Efficiency Solar Inverter" required>
               </div>
             </div>
-            <div class="form-group">
-              <label for="entry-desc-input">Description & Evidence Details</label>
-              <textarea id="entry-desc-input" placeholder="Details, publication DOI, grant number, or patent application ID"></textarea>
+
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+              <div class="form-group" style="flex:1; min-width:200px;">
+                <label for="entry-date">Achievement Date *</label>
+                <input type="date" id="entry-date" required>
+              </div>
+              <div class="form-group" style="flex:1; min-width:160px;">
+                <label for="entry-val">Value / Metric (Number) *</label>
+                <input type="number" id="entry-val" placeholder="e.g. 1, 50000" min="0.01" step="any" required>
+              </div>
+              <div class="form-group" style="flex:2; min-width:240px;">
+                <label for="entry-proof">Proof Link (Optional)</label>
+                <input type="url" id="entry-proof" placeholder="https://doi.org/... or https://patent.gov/...">
+              </div>
             </div>
-            <button type="submit" id="btn-submit-entry" class="btn btn-primary">Submit Achievement</button>
+
+            <div class="form-group">
+              <label for="entry-desc">Description & Evidence Details *</label>
+              <textarea id="entry-desc" placeholder="Describe scope, outcome, co-authors, funding agency, or grant sanction info" required></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+              <button type="submit" id="entry-save-btn" class="btn btn-primary">Submit Achievement</button>
+              <button type="button" id="entry-cancel-edit-btn" class="btn btn-outline" style="display:none;" onclick="resetEntryForm(); showSection('section-my-entries');">Cancel</button>
+            </div>
           </form>
         </div>
       </section>
@@ -281,52 +322,24 @@
       setText('sidebar-user-name', currentUser.name || 'User');
       setText('sidebar-user-role', (currentUser.role || '').toUpperCase());
 
-      // 1. Build the role-based menu in the sidebar
+      // 1. Build role-based sidebar menu
       buildSidebarMenu(currentUser.role);
 
-      // 2. Load initial dropdown data
-      loadDashboardIndicatorsDropdown();
+      // 2. Load indicators for the entry dropdown
+      loadIndicatorDropdown('entry-indicator');
     }
 
     // Refresh data whenever a section becomes active
     window.onSectionActivated = function (sectionId) {
       if (sectionId === 'section-indicators') loadIndicatorsTable();
       if (sectionId === 'section-all-entries') loadAllEntriesDashboard();
-      if (sectionId === 'section-my-entries') loadMyEntriesDashboard();
-      if (sectionId === 'section-add-entry') loadDashboardIndicatorsDropdown();
+      if (sectionId === 'section-my-entries') loadMyEntries();
+      if (sectionId === 'section-add-entry') loadIndicatorDropdown('entry-indicator');
       if (sectionId === 'section-approvals') loadApprovalsDashboard();
       if (sectionId === 'section-import-csv') {
         getIndicators().then(function (data) { indicatorList = data; });
       }
     };
-
-    // --- My Entries Loader ---
-    function loadMyEntriesDashboard() {
-      var tbody = document.getElementById('my-entries-body');
-      tbody.innerHTML = '<tr><td colspan="4" style="color:#999;">Loading your entries…</td></tr>';
-
-      getEntries()
-        .then(function (entries) {
-          var mine = entries.filter(function (e) {
-            return String(e.submittedBy) === String(currentUser.id) || e.submittedByName === currentUser.name;
-          });
-
-          if (mine.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="color:#999;">No entries submitted yet. Click "+ New Achievement" to submit one!</td></tr>';
-            return;
-          }
-
-          tbody.innerHTML = mine.map(function (e) {
-            var badgeClass = 'badge-' + e.status;
-            return '<tr>' +
-              '<td><strong>' + e.title + '</strong><br><small style="color:#666;">' + (e.description || '') + '</small></td>' +
-              '<td>' + (e.indicatorName || '—') + '</td>' +
-              '<td><span class="badge ' + badgeClass + '">' + e.status + '</span></td>' +
-              '<td><a href="entry-detail.html?id=' + e.id + '" class="btn btn-outline" style="padding:4px 8px; font-size:12px; text-decoration:none;">View / Comments</a></td>' +
-              '</tr>';
-          }).join('');
-        })
-        .catch(function (err) {
           tbody.innerHTML = '<tr><td colspan="4" class="error-text">Failed to load entries</td></tr>';
         });
     }
@@ -370,54 +383,6 @@
           '<td><a href="entry-detail.html?id=' + e.id + '" class="btn btn-outline" style="padding:4px 8px; font-size:12px; text-decoration:none;">View / Comments</a></td>' +
           '</tr>';
       }).join('');
-    }
-
-    // --- Dropdown Loader for Add Entry ---
-    function loadDashboardIndicatorsDropdown() {
-      var select = document.getElementById('entry-ind-select');
-      if (!select) return;
-
-      getIndicators()
-        .then(function (indicators) {
-          select.innerHTML = '<option value="">-- Select Indicator Type --</option>';
-          indicators.forEach(function (ind) {
-            var opt = document.createElement('option');
-            opt.value = ind.id;
-            opt.textContent = ind.name + (ind.category ? ' (' + ind.category + ')' : '');
-            select.appendChild(opt);
-          });
-        })
-        .catch(function (err) {
-          showToast('Could not load indicators', 'error');
-        });
-    }
-
-    // --- Add Entry Submit Handler ---
-    function handleDashboardEntrySubmit(event) {
-      event.preventDefault();
-      var indId = document.getElementById('entry-ind-select').value;
-      var title = document.getElementById('entry-title-input').value.trim();
-      var desc = document.getElementById('entry-desc-input').value.trim();
-      var btn = document.getElementById('btn-submit-entry');
-
-      if (!indId) return showToast('Please select an indicator', 'error');
-
-      btn.disabled = true;
-      btn.textContent = 'Submitting…';
-
-      createEntry({ indicatorId: Number(indId), title: title, description: desc })
-        .then(function () {
-          showToast('Achievement submitted successfully!', 'success');
-          document.getElementById('add-entry-form').reset();
-          showSection('section-my-entries');
-        })
-        .catch(function (err) {
-          showToast(err.message, 'error');
-        })
-        .finally(function () {
-          btn.disabled = false;
-          btn.textContent = 'Submit Achievement';
-        });
     }
 
     // --- Approvals Dashboard Logic ---
