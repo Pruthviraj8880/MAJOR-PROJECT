@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard — Innovation Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/leaderboard.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <span class="brand">Innovation Portal</span>
+      <div id="nav-links">
+        <a href="dashboard.html">← Back to Dashboard</a>
+      </div>
+    </div>
+    <div class="user-area">
+      <span id="user-info"></span>
+      <button onclick="logout()">Log out</button>
+    </div>
+  </nav>
+
+  <!-- Main Leaderboard Page Container -->
+  <div class="leaderboard-container">
+
+    <!-- Page Header -->
+    <div class="leaderboard-header">
+      <div>
+        <h1>Innovation Leaderboard</h1>
+        <p>Rankings for top contributors and departments based on approved innovation achievements</p>
+      </div>
+      <div class="leaderboard-actions">
+        <label for="filter-year" style="font-size:13px; font-weight:600; color:var(--text-light);">Year:</label>
+        <select id="filter-year" class="filter-select" onchange="renderLeaderboard()">
+          <option value="all">All Years</option>
+        </select>
+        <button class="btn btn-outline" onclick="initLeaderboard()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="leaderboard-tabs">
+      <button id="tab-btn-individuals" class="tab-btn active" onclick="switchTab('individuals')">
+        👤 Top Individuals
+      </button>
+      <button id="tab-btn-departments" class="tab-btn" onclick="switchTab('departments')">
+        🏛️ Top Departments
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="leaderboard-loading" class="state-container">
+      <div class="spinner"></div>
+      <h3>Loading Leaderboard</h3>
+      <p>Fetching approved innovation achievements and calculating rankings…</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="leaderboard-empty" class="state-container" style="display:none;">
+      <div class="state-icon">🏆</div>
+      <h3>No approved entries yet</h3>
+      <p>Rankings will appear here once innovation submissions are reviewed and approved.</p>
+      <a href="dashboard.html" class="btn btn-primary" style="display:inline-block; text-decoration:none; margin-top:8px;">Go to Dashboard</a>
+    </div>
+
+    <!-- Error State -->
+    <div id="leaderboard-error" class="state-container" style="display:none;">
+      <div class="state-icon" style="color:var(--danger);">⚠️</div>
+      <h3>Failed to Load Leaderboard</h3>
+      <p id="error-message">Could not retrieve records from the server.</p>
+      <button class="btn btn-primary" onclick="initLeaderboard()">Try Again</button>
+    </div>
+
+    <!-- Ready Content Card -->
+    <div id="leaderboard-content" style="display:none;">
+      <div class="leaderboard-card">
+        <div class="leaderboard-table-header">
+          <div class="col-rank">Rank</div>
+          <div class="col-name" id="col-header-name">Individual Contributor</div>
+          <div class="col-progress">Relative Score</div>
+          <div class="col-score">Approved</div>
+        </div>
+        <div id="leaderboard-list">
+          <!-- Rows injected dynamically by leaderboard.js -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="../config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', initLeaderboard);
+  </script>
+
+</body>
+</html>
