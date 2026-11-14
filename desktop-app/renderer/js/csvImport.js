@@ -125,3 +125,56 @@ function processParsedCsvRows(rawRows) {
   renderCsvPreview();
 }
 
+/**
+ * Renders the first 10 parsed rows in the preview table.
+ * Invalid rows are styled in red with the specific error reason.
+ */
+function renderCsvPreview() {
+  var tbody = document.getElementById('preview-body');
+  var importBtn = document.getElementById('btn-execute-import');
+  var countEl = document.getElementById('parsed-count');
+  if (!tbody) return;
+
+  var validCount = parsedCsvRows.filter(function (r) { return r.valid; }).length;
+  var invalidCount = parsedCsvRows.length - validCount;
+
+  if (countEl) countEl.textContent = parsedCsvRows.length + ' rows (' + validCount + ' valid, ' + invalidCount + ' invalid)';
+
+  if (parsedCsvRows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#888;">No rows found in the CSV file.</td></tr>';
+    if (importBtn) importBtn.disabled = true;
+    return;
+  }
+
+  // Only enable import if there is at least one valid row
+  if (importBtn) importBtn.disabled = validCount === 0;
+
+  // Show first 10 rows as preview
+  var previewSlice = parsedCsvRows.slice(0, 10);
+  var noteEl = document.getElementById('csv-preview-note');
+  if (noteEl) noteEl.textContent = parsedCsvRows.length > 10
+    ? 'Showing first 10 of ' + parsedCsvRows.length + ' rows. All valid rows will be imported.'
+    : '';
+
+  tbody.innerHTML = previewSlice.map(function (row, idx) {
+    var rowClass = row.valid ? '' : 'row-invalid';
+    var statusBadge = row.valid
+      ? '<span class="badge-valid">✓ Valid</span>'
+      : '<span class="badge-invalid">✕ ' + row.errors.join('; ') + '</span>';
+
+    return '<tr class="' + rowClass + '">' +
+      '<td>' + (idx + 1) + '</td>' +
+      '<td>' + escCsv(row.title || '—') + '</td>' +
+      '<td>' + escCsv(row.indicatorName || '—') + '</td>' +
+      '<td>' + escCsv(row.date || '—') + '</td>' +
+      '<td>' + (row.valid ? row.value : escCsv(String(row.value || '—'))) + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// Simple HTML escape for CSV display values
+function escCsv(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
