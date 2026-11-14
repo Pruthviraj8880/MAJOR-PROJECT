@@ -157,6 +157,11 @@ function viewEntryDetail(id) {
     editBtn.style.display = (entry.status === 'pending') ? 'inline-block' : 'none';
     editBtn.onclick = function () { startEditEntry(entry); };
   }
+
+  // Render comments & feedback thread for this entry
+  if (typeof renderCommentsSection === 'function') {
+    renderCommentsSection('my-entry-comments-thread', entry.id);
+  }
   panel.scrollIntoView({ behavior: 'smooth' });
 }
 
