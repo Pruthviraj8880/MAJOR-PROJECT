@@ -114,6 +114,31 @@ function exportEntriesToCsv() {
   showToast('Exported ' + allEntries.length + ' entries to CSV', 'success');
 }
 
+// Validate required fields: indicator, title, description, date, value
+function validateEntryForm(data) {
+  if (!data.indicatorId) {
+    showToast('Please select an indicator type', 'error');
+    return false;
+  }
+  if (!data.title || data.title.trim() === '') {
+    showToast('Title is required', 'error');
+    return false;
+  }
+  if (!data.description || data.description.trim() === '') {
+    showToast('Description is required', 'error');
+    return false;
+  }
+  if (!data.date) {
+    showToast('Achievement date is required', 'error');
+    return false;
+  }
+  if (data.value === '' || isNaN(Number(data.value)) || Number(data.value) <= 0) {
+    showToast('Please enter a valid positive numeric value', 'error');
+    return false;
+  }
+  return true;
+}
+
 // Submit a new achievement entry
 function handleEntrySubmit(event) {
   event.preventDefault();
