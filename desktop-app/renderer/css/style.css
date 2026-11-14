@@ -202,6 +202,23 @@ body {
 .badge-rejected { background: #fee2e2; color: var(--danger); }
 .badge-active   { background: #dcfce7; color: var(--success); }
 .badge-inactive { background: #f1f5f9; color: var(--text-light); }
+.badge-version  { background: #e0f2fe; color: #0369a1; font-family: monospace; font-size: 11px; padding: 1px 6px; border-radius: 4px; margin-left: 6px; font-weight: 600; }
+
+tr.clickable-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+tr.clickable-row:hover {
+  background: #f8fafc;
+}
+
+.rejection-banner {
+  background: #fef2f2;
+  border-left: 4px solid var(--danger);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-top: 14px;
+}
 
 /* --- Tables ---------------------------------------------- */
 table {
