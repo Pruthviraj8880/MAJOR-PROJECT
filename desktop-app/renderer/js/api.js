@@ -13,17 +13,13 @@ async function apiRequest(endpoint, options = {}) {
   };
 
   // If we have a saved token, send it with every request
-  if (token) {
-    headers['Authorization'] = 'Bearer ' + token;
-  }
+  if (token) headers['Authorization'] = 'Bearer ' + token;
 
   const url = CONFIG.API_BASE + endpoint;
-
   let response;
   try {
     response = await fetch(url, { ...options, headers });
   } catch (err) {
-    // Network error — server is probably not running
     throw new Error('Cannot reach the server. Is it running?');
   }
 
@@ -34,13 +30,10 @@ async function apiRequest(endpoint, options = {}) {
     return;
   }
 
-  // Try to parse JSON; some responses (like DELETE) might be empty
   const data = await response.json().catch(() => ({}));
-
   if (!response.ok) {
     throw new Error(data.message || 'Request failed (HTTP ' + response.status + ')');
   }
-
   return data;
 }
 
@@ -130,20 +123,22 @@ function updateEntry(id, entry) {
 function updateEntryStatus(id, status, comment) {
   return apiRequest('/api/entries/' + id + '/status', {
     method: 'PUT',
-    body: JSON.stringify({ status, comment })
+    body: JSON.stringify({ status: status, comment: comment })
   });
 }
 
-// --- Comments --------------------------------------------
-
+// --- Comments / Feedback ---------------------------------
 function getComments(entryId) {
-  return apiRequest('/api/entries/' + entryId + '/comments');
+  return apiRequest('/api/entries/' + entryId + '/comments').then(function (res) {
+    if (Array.isArray(res)) return res;
+    return (res && (res.comments || res.feedback)) || [];
+  });
 }
 
 function addComment(entryId, text) {
   return apiRequest('/api/entries/' + entryId + '/comments', {
     method: 'POST',
-    body: JSON.stringify({ text })
+    body: JSON.stringify({ text: text })
   });
 }
 
