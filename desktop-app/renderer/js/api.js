@@ -87,17 +87,29 @@ function deleteIndicator(id) {
 // --- Entries ---------------------------------------------
 
 function getEntries() {
-  return apiRequest('/api/entries');
+  return apiRequest('/api/entries').then(function (res) {
+    if (res && res.entries && Array.isArray(res.entries)) return res.entries;
+    return Array.isArray(res) ? res : [];
+  });
 }
 
 function getEntry(id) {
-  return apiRequest('/api/entries/' + id);
+  return apiRequest('/api/entries/' + id).then(function (res) {
+    return (res && res.entry) ? res.entry : res;
+  });
 }
 
 function createEntry(entry) {
   return apiRequest('/api/entries', {
     method: 'POST',
     body: JSON.stringify(entry)
+  }).then(function (res) {
+    if (res && res.entry) {
+      var item = res.entry;
+      if (res.version) item.version = typeof res.version === 'object' ? res.version.version : res.version;
+      return item;
+    }
+    return res;
   });
 }
 
@@ -105,6 +117,13 @@ function updateEntry(id, entry) {
   return apiRequest('/api/entries/' + id, {
     method: 'PUT',
     body: JSON.stringify(entry)
+  }).then(function (res) {
+    if (res && res.entry) {
+      var item = res.entry;
+      if (res.version) item.version = typeof res.version === 'object' ? res.version.version : res.version;
+      return item;
+    }
+    return res;
   });
 }
 
