@@ -35,10 +35,10 @@ let indicators = [
 
 let nextEntryId = 5;
 let entries = [
-  { id: 1, title: 'ML in Healthcare Paper',    description: 'Published in IEEE Access',       indicatorId: 1, indicatorName: 'Research Papers',   submittedBy: 2, submittedByName: 'Prof. Sharma', status: 'approved', createdAt: '2026-10-01' },
-  { id: 2, title: 'IoT Patent Application',    description: 'Smart campus sensor network',    indicatorId: 2, indicatorName: 'Patents Filed',     submittedBy: 2, submittedByName: 'Prof. Sharma', status: 'pending',  createdAt: '2026-10-15' },
-  { id: 3, title: 'DST Grant ₹5L',             description: 'Under SERB young scientist',     indicatorId: 3, indicatorName: 'Grants Received',   submittedBy: 2, submittedByName: 'Prof. Sharma', status: 'pending',  createdAt: '2026-11-01' },
-  { id: 4, title: 'EduTech Startup',            description: 'AI tutoring platform by students', indicatorId: 4, indicatorName: 'Startups Incubated', submittedBy: 3, submittedByName: 'Riya Patel',   status: 'rejected', createdAt: '2026-11-05' }
+  { id: 1, title: 'ML in Healthcare Paper',    description: 'Published in IEEE Access',       indicatorId: 1, indicatorName: 'Research Papers',   submittedBy: 2, submittedByName: 'Prof. Sharma', status: 'approved', date: '2026-10-01', value: 1, proofLink: 'https://doi.org/10.1109/access.2026', version: 1, createdAt: '2026-10-01' },
+  { id: 2, title: 'IoT Patent Application',    description: 'Smart campus sensor network',    indicatorId: 2, indicatorName: 'Patents Filed',     submittedBy: 2, submittedByName: 'Prof. Sharma', status: 'pending',  date: '2026-10-15', value: 1, proofLink: '', version: 1, createdAt: '2026-10-15' },
+  { id: 3, title: 'DST Grant ₹5L',             description: 'Under SERB young scientist',     indicatorId: 3, indicatorName: 'Grants Received',   submittedBy: 2, submittedByName: 'Prof. Sharma', status: 'pending',  date: '2026-11-01', value: 500000, proofLink: 'https://dst.gov.in/grant/581', version: 1, createdAt: '2026-11-01' },
+  { id: 4, title: 'EduTech Startup',            description: 'AI tutoring platform by students', indicatorId: 4, indicatorName: 'Startups Incubated', submittedBy: 3, submittedByName: 'Riya Patel',   status: 'rejected', date: '2026-11-05', value: 1, proofLink: 'https://edutech.ai', version: 1, adminComment: 'Please add the incorporation certificate.', createdAt: '2026-11-05' }
 ];
 
 let nextCommentId = 3;
@@ -123,7 +123,12 @@ app.post('/api/entries', authMiddleware, (req, res) => {
   const entry = {
     id: nextEntryId++,
     ...req.body,
+    indicatorId: req.body.indicatorId ? Number(req.body.indicatorId) : null,
     indicatorName: ind ? ind.name : 'Unknown',
+    date: req.body.date || new Date().toISOString().slice(0, 10),
+    value: Number(req.body.value) || 1,
+    proofLink: req.body.proofLink || '',
+    version: 1,
     submittedBy: req.user.id,
     submittedByName: req.user.name,
     status: 'pending',
@@ -137,7 +142,18 @@ app.put('/api/entries/:id', authMiddleware, (req, res) => {
   const entry = entries.find(e => e.id === Number(req.params.id));
   if (!entry) return res.status(404).json({ message: 'Entry not found' });
 
+  // Only allow editing while status is pending
+  if (entry.status !== 'pending') {
+    return res.status(400).json({ message: 'Cannot edit entry: only pending entries can be modified' });
+  }
+
+  // Update fields and bump version
   Object.assign(entry, req.body);
+  if (req.body.indicatorId) {
+    const ind = indicators.find(i => i.id === Number(req.body.indicatorId));
+    if (ind) entry.indicatorName = ind.name;
+  }
+  entry.version = (entry.version || 1) + 1;
   res.json(entry);
 });
 
@@ -146,13 +162,20 @@ app.put('/api/entries/:id/status', authMiddleware, (req, res) => {
   if (!entry) return res.status(404).json({ message: 'Entry not found' });
 
   entry.status = req.body.status; // 'approved' or 'rejected'
-
-  // Also save the review comment if provided
   if (req.body.comment) {
+    entry.adminComment = req.body.comment;
     comments.push({
       id: nextCommentId++,
       entryId: entry.id,
       text: req.body.comment,
+      userId: req.user.id,
+      authorName: req.user.name,
+      createdAt: new Date().toISOString().slice(0, 10)
+    });
+  }
+
+  res.json(entry);
+});
       userId: req.user.id,
       authorName: req.user.name,
       createdAt: new Date().toISOString().slice(0, 10)
