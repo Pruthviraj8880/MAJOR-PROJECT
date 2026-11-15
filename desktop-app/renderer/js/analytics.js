@@ -41,14 +41,38 @@ function normalizeEntry(raw, indicatorDeptMap) {
     (raw.createdBy && raw.createdBy.name) ||
     (raw.submittedBy ? 'User #' + raw.submittedBy : 'Unknown');
 
-  // Department: from indicator map, nested indicator object, or raw field
+  // Department: from indicator map (by ID or name), nested indicator object, or raw entry field
   var department = 'Unknown';
-  if (indicatorId && indicatorDeptMap[indicatorId]) {
-    department = indicatorDeptMap[indicatorId];
-  } else if (raw.indicator && raw.indicator.department && raw.indicator.department.name) {
-    department = raw.indicator.department.name;
-  } else if (raw.departmentName) {
-    department = raw.departmentName;
+  if (typeof raw.department === 'string' && raw.department.trim()) {
+    department = raw.department.trim();
+  } else if (raw.department && typeof raw.department === 'object' && raw.department.name) {
+    department = raw.department.name;
+  } else if (typeof raw.departmentName === 'string' && raw.departmentName.trim()) {
+    department = raw.departmentName.trim();
+  } else if (raw.indicator) {
+    if (typeof raw.indicator.department === 'string' && raw.indicator.department.trim()) {
+      department = raw.indicator.department.trim();
+    } else if (raw.indicator.department && typeof raw.indicator.department === 'object' && raw.indicator.department.name) {
+      department = raw.indicator.department.name;
+    } else if (typeof raw.indicator.departmentName === 'string' && raw.indicator.departmentName.trim()) {
+      department = raw.indicator.departmentName.trim();
+    }
+  }
+
+  if (department === 'Unknown' || !department) {
+    if (indicatorId !== null && indicatorId !== undefined && indicatorDeptMap[indicatorId]) {
+      department = indicatorDeptMap[indicatorId];
+    } else if (indicatorId !== null && indicatorId !== undefined && indicatorDeptMap[String(indicatorId)]) {
+      department = indicatorDeptMap[String(indicatorId)];
+    } else if (indicatorName && indicatorDeptMap[indicatorName]) {
+      department = indicatorDeptMap[indicatorName];
+    } else if (indicatorName && indicatorDeptMap[indicatorName.trim().toLowerCase()]) {
+      department = indicatorDeptMap[indicatorName.trim().toLowerCase()];
+    }
+  }
+
+  if (!department) {
+    department = 'Unknown';
   }
 
   // Date parsing: Year and Month
@@ -77,7 +101,8 @@ function normalizeEntry(raw, indicatorDeptMap) {
 }
 
 /**
- * Builds a map of indicatorId -> department name from GET /api/indicators.
+ * Builds a map of indicator (ID and Name) -> department name from GET /api/indicators.
+ * Supports both string department (mock server) and nested department object/ID (backend).
  */
 async function loadIndicatorDepartmentMap() {
   var deptMap = {};
@@ -87,12 +112,24 @@ async function loadIndicatorDepartmentMap() {
 
     indicators.forEach(function (ind) {
       var deptName = 'Unknown';
-      if (ind.department && ind.department.name) {
+      if (typeof ind.department === 'string' && ind.department.trim()) {
+        deptName = ind.department.trim();
+      } else if (ind.department && typeof ind.department === 'object' && ind.department.name) {
         deptName = ind.department.name;
-      } else if (ind.departmentName) {
-        deptName = ind.departmentName;
+      } else if (typeof ind.departmentName === 'string' && ind.departmentName.trim()) {
+        deptName = ind.departmentName.trim();
+      } else if (ind.departmentId) {
+        deptName = ind.departmentId;
       }
-      deptMap[ind.id] = deptName;
+
+      if (ind.id !== undefined && ind.id !== null) {
+        deptMap[ind.id] = deptName;
+        deptMap[String(ind.id)] = deptName;
+      }
+      if (ind.name) {
+        deptMap[ind.name] = deptName;
+        deptMap[ind.name.trim().toLowerCase()] = deptName;
+      }
     });
   } catch (err) {
     console.warn('Could not load indicator department mapping:', err);
