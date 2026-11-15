@@ -98,7 +98,11 @@ function handleEntrySubmit(event) {
   if (!validateEntryForm(payload)) return;
 
   var saveBtn = document.getElementById('entry-save-btn');
-  saveBtn.disabled = true;
+  var origText = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = editingEntryId ? 'Updating…' : 'Submitting…';
+  }
 
   var req = editingEntryId ? updateEntry(editingEntryId, payload) : createEntry(payload);
   req.then(function (res) {
@@ -110,7 +114,10 @@ function handleEntrySubmit(event) {
   }).catch(function (err) {
     showToast(err.message, 'error');
   }).finally(function () {
-    saveBtn.disabled = false;
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = origText || 'Submit Achievement';
+    }
   });
 }
 

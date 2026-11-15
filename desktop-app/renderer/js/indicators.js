@@ -52,18 +52,14 @@ function loadIndicatorsTable() {
   });
 }
 
-function escapeQuotes(str) {
-  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-}
+function escapeQuotes(str) { return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
 
 function startEditIndicator(id, name, category, unit, department, isActive) {
   editingIndicatorId = id;
   var titleEl = document.getElementById('ind-form-title') || document.getElementById('form-title');
   if (titleEl) titleEl.textContent = 'Edit Indicator';
-  setVal('ind-name', name || '');
-  setVal('ind-category', category || 'Research');
-  setVal('ind-unit', unit || 'count');
-  setVal('ind-dept', department || '');
+  setVal('ind-name', name || ''); setVal('ind-category', category || 'Research');
+  setVal('ind-unit', unit || 'count'); setVal('ind-dept', department || '');
   var activeEl = document.getElementById('ind-active');
   if (activeEl) activeEl.checked = (isActive !== false);
   var saveBtn = document.getElementById('ind-save-btn');
@@ -80,10 +76,8 @@ function resetIndicatorForm() {
   if (form) form.reset();
   var activeEl = document.getElementById('ind-active');
   if (activeEl) activeEl.checked = true;
-  var saveBtn = document.getElementById('ind-save-btn');
-  if (saveBtn) saveBtn.textContent = 'Create Indicator';
-  var cancelBtn = document.getElementById('ind-cancel-btn');
-  if (cancelBtn) cancelBtn.style.display = 'none';
+  var saveBtn = document.getElementById('ind-save-btn'); if (saveBtn) saveBtn.textContent = 'Create Indicator';
+  var cancelBtn = document.getElementById('ind-cancel-btn'); if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 function setVal(id, val) {
@@ -108,21 +102,23 @@ function handleIndicatorSubmit(event) {
   var name = document.getElementById('ind-name').value.trim();
   if (!validateIndicatorName(name)) return;
 
-  var categoryEl = document.getElementById('ind-category');
-  var unitEl = document.getElementById('ind-unit');
-  var deptEl = document.getElementById('ind-dept');
+  var getV = function (id) { var el = document.getElementById(id); return el ? el.value : ''; };
   var activeEl = document.getElementById('ind-active');
 
   var payload = {
     name: name,
-    category: categoryEl ? categoryEl.value : 'Research',
-    unit: unitEl ? unitEl.value : 'count',
-    department: deptEl ? deptEl.value.trim() : '',
+    category: getV('ind-category') || 'Research',
+    unit: getV('ind-unit') || 'count',
+    department: (getV('ind-dept') || '').trim(),
     isActive: activeEl ? activeEl.checked : true
   };
 
   var saveBtn = document.getElementById('ind-save-btn');
-  saveBtn.disabled = true;
+  var origText = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = editingIndicatorId ? 'Updating…' : 'Creating…';
+  }
 
   var req = editingIndicatorId ? updateIndicator(editingIndicatorId, payload) : createIndicator(payload);
   req.then(function () {
@@ -132,7 +128,10 @@ function handleIndicatorSubmit(event) {
   }).catch(function (err) {
     showToast(err.message, 'error');
   }).finally(function () {
-    saveBtn.disabled = false;
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = origText || 'Create Indicator';
+    }
   });
 }
 

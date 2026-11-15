@@ -129,8 +129,8 @@ function submitApprovalDecision(status) {
 
   var btnApprove = document.getElementById('btn-approve-decision');
   var btnReject = document.getElementById('btn-reject-decision');
-  if (btnApprove) btnApprove.disabled = true;
-  if (btnReject) btnReject.disabled = true;
+  if (btnApprove) { btnApprove.disabled = true; if (status === 'approved') btnApprove.textContent = 'Approving…'; }
+  if (btnReject) { btnReject.disabled = true; if (status === 'rejected') btnReject.textContent = 'Rejecting…'; }
 
   updateEntryStatus(selectedApprovalEntry.id, status, comment)
     .then(function () {
@@ -142,7 +142,7 @@ function submitApprovalDecision(status) {
       showToast(err.message || 'Status update failed', 'error');
     })
     .finally(function () {
-      if (btnApprove) btnApprove.disabled = false;
-      if (btnReject) btnReject.disabled = false;
+      if (btnApprove) { btnApprove.disabled = false; btnApprove.textContent = '✓ Approve'; }
+      if (btnReject) { btnReject.disabled = false; btnReject.textContent = '✕ Reject'; }
     });
 }
