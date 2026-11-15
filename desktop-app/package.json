@@ -5,13 +5,47 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "mock": "node mock-server/server.js"
+    "mock": "node mock-server/server.js",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win"
+  },
+  "build": {
+    "appId": "edu.inst.innovationportal",
+    "productName": "InnovationPortal",
+    "files": [
+      "main.js",
+      "config.js",
+      "renderer/**/*",
+      "node_modules/papaparse/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.education"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "dependencies": {
     "papaparse": "^5.4.1"
   },
   "devDependencies": {
     "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "jsonwebtoken": "^9.0.2"
