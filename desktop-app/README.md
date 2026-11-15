@@ -133,3 +133,60 @@ Here is a straightforward explanation of each file's exact purpose in plain word
 
 - **`renderer/js/csvImport.js` (Bulk CSV Import):**
   Handles bulk data entry. Uses `PapaParse` to parse `.csv` files locally in the renderer. Validates that every row has an existing indicator, valid `YYYY-MM-DD` date, and positive numeric value. Previews the first 10 rows with invalid rows highlighted in **red** and showing specific error reasons. Only valid rows are sent to `POST /api/entries`, culminating in a summary banner like *"18 imported, 2 skipped"*.
+
+---
+
+## 5. How Data Flows (Architecture Walkthrough)
+
+Every interaction in this application follows a strict 5-stage lifecycle:
+
+```text
+1. User Action
+   ├── User clicks a button (e.g., "Submit Achievement", "Approve", or "Post Comment")
+   └── DOM event fires (onsubmit or onclick)
+
+2. Module Handler & Client Validation
+   ├── The module script (e.g., entries.js or approvals.js) catches the event
+   ├── Input fields are extracted and sanitized
+   ├── Client-side validation checks run (e.g., name not empty, value > 0, date valid)
+   └── UI shows immediate feedback (e.g., button disabled, text set to "Submitting…")
+
+3. Network Layer (api.js)
+   ├── The handler calls a helper function in api.js (e.g., createEntry(payload))
+   ├── api.js pulls the active JWT from localStorage and attaches `Authorization: Bearer <token>`
+   ├── Calls standard browser `fetch(CONFIG.API_BASE + endpoint)`
+   └── If the server cannot be reached, throws a human-readable network error
+
+4. Backend Execution
+   ├── Express server receives the request
+   ├── authMiddleware verifies the JWT signature and extracts user identity
+   ├── Controller validates payload and updates database/state
+   └── Server returns HTTP 200/201 with the created/updated JSON object
+
+5. UI Update & Toast Notification
+   ├── The Promise resolves in the module script
+   ├── DOM is re-rendered (e.g., new row injected into the table, count badge incremented)
+   ├── Input form is reset to initial state and buttons re-enabled
+   └── `showToast("Achievement submitted (version 1)", "success")` displays feedback
+```
+
+---
+
+## 6. Honest Viva Disclosure (What is Real vs. Mocked)
+
+To answer questions from external examiners with full transparency and confidence:
+
+### ✅ What is Fully Implemented & Working
+1. **Complete Desktop Client Architecture:** Pure vanilla JavaScript, modular design (each core script kept ≤ 150 lines), zero heavy dependencies, native Electron packaging for Windows (`.exe`) and macOS (`.dmg`).
+2. **Role-Based Security:** Dynamic menu building and route guards enforced by decoded JWT roles (`admin`, `faculty`, `student`).
+3. **Indicator Management:** Full CRUD operations with non-empty validation and `confirm()` safety prompts.
+4. **Achievement Versioning:** Updates to pending entries trigger server-side version increments (e.g. `v1` → `v2`) while locking approved/rejected entries from unauthorized edits.
+5. **Approval Workflow:** Real-time status transitions with enforced comment validation for rejections.
+6. **Entry Discussion Threads:** Real-time comments with author attribution and formatted timestamps.
+7. **Bulk CSV Parsing & Validation:** In-browser parsing with PapaParse, row error detection, invalid red-row highlighting, and sequential API dispatch.
+
+### ⚠️ What is Mocked or Simplified
+1. **Mock Server Storage:** The included `mock-server/server.js` (port 3001) stores data in **in-memory JavaScript arrays**. It restarts with default seed data when stopped. This is intentional to allow viva demonstrations without requiring PostgreSQL installation on the examiner's laptop.
+2. **Real Backend Compatibility:** The teammate's backend located in `src/` uses PostgreSQL, Prisma ORM, and Express (port 3000). The desktop app's `api.js` has built-in fallback compatibility for both backends simply by editing `config.js`.
+3. **Proof Storage:** Proofs and evidence are stored as **external verified URLs** (DOI links, patent database links, cloud drive URLs) rather than multipart binary file uploads to avoid server storage bloat.
+4. **Credential Security:** JWT tokens are persisted in browser `localStorage`. A production banking-grade application would utilize Electron's native `safeStorage` API or OS keychain.
