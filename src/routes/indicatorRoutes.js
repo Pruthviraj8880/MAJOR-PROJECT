@@ -15,7 +15,7 @@ const {
 
 router.use(authenticate);
 
-router.get("/", authorizeRoles("ADMIN"), getIndicators);
+router.get("/", getIndicators);
 router.get("/:id", authorizeRoles("ADMIN"), getIndicatorById);
 router.post("/", authorizeRoles("ADMIN"), createIndicator);
 router.put("/:id", authorizeRoles("ADMIN"), updateIndicator);

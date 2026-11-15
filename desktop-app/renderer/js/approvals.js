@@ -55,7 +55,7 @@ function renderApprovalsTable() {
     var dateStr = e.date || (e.createdAt ? e.createdAt.slice(0, 10) : '—');
     var badgeClass = 'badge-' + (e.status || 'pending').toLowerCase();
 
-    return '<tr class="clickable-row" onclick="openApprovalReview(' + e.id + ')">' +
+    return '<tr class="clickable-row" onclick="openApprovalReview(\'' + e.id + '\')">' +
       '<td><strong>' + escapeHtml(e.title) + '</strong><br><small style="color:#666;">' + escapeHtml((e.description || '').slice(0, 60)) + '…</small></td>' +
       '<td>' + escapeHtml(indName) + '</td>' +
       '<td>' + escapeHtml(submitter) + '</td>' +

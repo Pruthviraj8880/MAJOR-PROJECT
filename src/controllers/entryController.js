@@ -5,7 +5,14 @@ const createAuditLog = require("../utils/auditLogger");
 // CREATE ENTRY + VERSION 1
 const createEntry = async (req, res) => {
   try {
-    const { title, description, indicatorId } = req.body;
+    const {
+      title,
+      description,
+      indicatorId,
+      date,
+      value,
+      proofLink
+    } = req.body;
 
     if (!title || typeof title !== "string" || !title.trim()) {
       return res.status(400).json({
@@ -29,6 +36,33 @@ const createEntry = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Indicator ID is required"
+      });
+    }
+
+    if (date !== undefined && typeof date !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid entry date"
+      });
+    }
+
+    if (
+      value !== undefined &&
+      (!Number.isFinite(Number(value)) || Number(value) <= 0)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Entry value must be a positive number"
+      });
+    }
+
+    if (
+      proofLink !== undefined &&
+      typeof proofLink !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Proof link must be a string"
       });
     }
 
@@ -62,7 +96,10 @@ const createEntry = async (req, res) => {
             title: entry.title,
             description: entry.description,
             status: entry.status,
-            indicatorId: entry.indicatorId
+            indicatorId: entry.indicatorId,
+            date: date || null,
+            value: value !== undefined ? Number(value) : null,
+            proofLink: proofLink?.trim() || null
           },
           createdById: req.user.id
         }
@@ -233,11 +270,19 @@ const getAllEntries = async (req, res) => {
 
 
 // UPDATE ENTRY + CREATE NEW VERSION
-
 const updateEntry = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, indicatorId } = req.body;
+
+    const {
+      title,
+      description,
+      status,
+      indicatorId,
+      date,
+      value,
+      proofLink
+    } = req.body;
 
     const existingEntry = await prisma.entry.findUnique({
       where: { id }
@@ -326,12 +371,43 @@ const updateEntry = async (req, res) => {
       }
     }
 
+    // Validate additional frontend fields
+    if (date !== undefined && typeof date !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid entry date"
+      });
+    }
+
+    if (
+      value !== undefined &&
+      (!Number.isFinite(Number(value)) || Number(value) <= 0)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Entry value must be a positive number"
+      });
+    }
+
+    if (
+      proofLink !== undefined &&
+      typeof proofLink !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Proof link must be a string"
+      });
+    }
+
     // Check that at least one field is provided
     if (
       title === undefined &&
       description === undefined &&
       status === undefined &&
-      indicatorId === undefined
+      indicatorId === undefined &&
+      date === undefined &&
+      value === undefined &&
+      proofLink === undefined
     ) {
       return res.status(400).json({
         success: false,
@@ -369,10 +445,12 @@ const updateEntry = async (req, res) => {
               orderBy: { version: "desc" }
             });
 
+            const previousData = latestVersion?.data || {};
+
             const newVersionNumber =
               (latestVersion?.version || 0) + 1;
 
-            // Create new version
+            // Create new version and preserve previous snapshot fields
             const newVersion = await tx.entryVersion.create({
               data: {
                 entryId: id,
@@ -381,7 +459,19 @@ const updateEntry = async (req, res) => {
                   title: updatedEntry.title,
                   description: updatedEntry.description,
                   status: updatedEntry.status,
-                  indicatorId: updatedEntry.indicatorId
+                  indicatorId: updatedEntry.indicatorId,
+
+                  date: date !== undefined
+                    ? date
+                    : previousData.date || null,
+
+                  value: value !== undefined
+                    ? Number(value)
+                    : previousData.value ?? null,
+
+                  proofLink: proofLink !== undefined
+                    ? (proofLink.trim() || null)
+                    : previousData.proofLink || null
                 },
                 createdById: req.user.id
               }

@@ -23,7 +23,7 @@ function renderCommentsSection(containerId, entryId) {
       '<div id="' + containerId + '-list" class="comments-list">' +
         '<div style="color:#888; font-size:13px;">Loading comments…</div>' +
       '</div>' +
-      '<form id="' + containerId + '-form" class="comment-form" onsubmit="handleCommentSubmit(event, \'' + containerId + '\', ' + entryId + ')">' +
+      '<form id="' + containerId + '-form" class="comment-form" onsubmit="handleCommentSubmit(event, ' + JSON.stringify(containerId) + ', ' + JSON.stringify(String(entryId)) + ')">' +
         '<textarea id="' + containerId + '-input" placeholder="Write feedback or a note on this entry…" required></textarea>' +
         '<div style="display:flex; justify-content:flex-end;">' +
           '<button type="submit" id="' + containerId + '-btn" class="btn btn-primary" style="padding:6px 14px; font-size:13px;">Post Comment</button>' +
