@@ -7,6 +7,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1100,
     height: 750,
+    minWidth: 780,
+    minHeight: 520,
     webPreferences: {
       // We only use browser APIs (fetch, localStorage), so no Node needed
       nodeIntegration: false,

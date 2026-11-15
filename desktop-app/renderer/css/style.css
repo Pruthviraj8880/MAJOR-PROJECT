@@ -544,5 +544,64 @@ th {
   font-style: italic;
 }
 
+/* --- Responsive Window Resizing Styles --- */
+.card {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 540px;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 200px;
+  }
+  .main-content {
+    padding: 20px 18px;
+  }
+  .sidebar-brand {
+    padding: 16px;
+    font-size: 15px;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .app-layout {
+    flex-direction: column;
+    height: 100vh;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-user {
+    padding: 8px 16px;
+  }
+  .sidebar-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 6px 12px;
+    max-height: 120px;
+  }
+  .sidebar-menu .menu-item {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  .sidebar-footer {
+    display: none;
+  }
+  .main-content {
+    padding: 16px 12px;
+  }
+}
+
+
 
 
