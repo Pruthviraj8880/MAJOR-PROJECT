@@ -190,3 +190,11 @@ To answer questions from external examiners with full transparency and confidenc
 2. **Real Backend Compatibility:** The teammate's backend located in `src/` uses PostgreSQL, Prisma ORM, and Express (port 3000). The desktop app's `api.js` has built-in fallback compatibility for both backends simply by editing `config.js`.
 3. **Proof Storage:** Proofs and evidence are stored as **external verified URLs** (DOI links, patent database links, cloud drive URLs) rather than multipart binary file uploads to avoid server storage bloat.
 4. **Credential Security:** JWT tokens are persisted in browser `localStorage`. A production banking-grade application would utilize Electron's native `safeStorage` API or OS keychain.
+
+
+---
+
+## 7. Database Engineering (DE) Viva Guide
+
+For the complete technical breakdown of the database architecture, ER diagrams, 3NF/BCNF normalization proof, serializable concurrency control, and 100× scaling strategies, see:
+👉 [**`DE_QUESTIONS_AND_ANSWERS.md`**](../DE_QUESTIONS_AND_ANSWERS.md)

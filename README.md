@@ -10,6 +10,7 @@ A comprehensive portal for tracking institutional innovation activities (researc
   - Built with responsive UI, role-based dashboards (Admin, Faculty, Student), indicator CRUD, entry submissions with versioning, admin approval flow, comments thread, and client-side bulk CSV import.
   - Complete viva documentation, architecture flow, and file-by-file explanations are in [**`desktop-app/README.md`**](./desktop-app/README.md).
 - **[`src/`](./src)** — Central Node.js, Express, and Prisma ORM backend connected to PostgreSQL.
+- **[`DE_QUESTIONS_AND_ANSWERS.md`](./DE_QUESTIONS_AND_ANSWERS.md)** — Comprehensive Database Engineering (DE) viva guide with ER diagrams, normalization (1NF–BCNF), constraints, transactions, serialization concurrency, and 100× scaling strategies.
 - **[`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md)** — Comprehensive REST API endpoint reference and database schemas.
 
 ---
